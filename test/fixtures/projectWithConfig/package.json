@@ -1,0 +1,17 @@
+{
+  "name": "testproject",
+  "version": "1.0.0",
+  "description": "A test project for shipout",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "shipout": {
+    "deploy_user": "someuser",
+    "deploy_server": "server.somewhere.net",
+    "deploy_base_dir": "/some/path",
+    "app_environment": "staging"
+  }
+}

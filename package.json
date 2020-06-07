@@ -1,0 +1,49 @@
+{
+  "name": "shipout",
+  "version": "0.0.1",
+  "description": "A lightweight tool for deploying node applications from within a source repository",
+  "main": "dist/index.js",
+  "bin": {
+    "shipout": "bin/shipout.js"
+  },
+  "scripts": {
+    "build": "babel src -d dist",
+    "test": "jest",
+    "test:coverage": "jest --coverage"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.jsx?$": "babel-jest"
+    }
+  },
+  "keywords": [
+    "deploy",
+    "server",
+    "application",
+    "deployment",
+    "script",
+    "ssh"
+  ],
+  "author": {
+    "name": "Scott Johnson",
+    "email": "jaywir3@gmail.com"
+  },
+  "license": "MPL-2.0",
+  "devDependencies": {
+    "@babel/cli": "^7.10.1",
+    "@babel/core": "^7.10.2",
+    "@babel/plugin-proposal-class-properties": "^7.10.1",
+    "@babel/preset-env": "^7.10.2",
+    "babel-plugin-root-import": "^6.5.0",
+    "jest": "^26.0.1"
+  },
+  "dependencies": {
+    "babel-jest": "^26.0.1",
+    "mkdirp": "^1.0.4",
+    "moment": "^2.26.0",
+    "node-ssh": "^10.0.2",
+    "rimraf": "^3.0.2",
+    "ssh2": "^0.8.9",
+    "tar-pack": "^3.4.1"
+  }
+}
