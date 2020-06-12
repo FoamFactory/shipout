@@ -44,6 +44,10 @@ export class ConfigStore {
     return this._getPackageConfig().name;
   }
 
+  getProjectBaseDirectory() {
+    return this.projectPath;
+  }
+
   getConfigurationFromPackageJson() {
     const pkg = this._getPackageConfig();
 

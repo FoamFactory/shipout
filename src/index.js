@@ -1,13 +1,11 @@
 import * as fs from 'fs';
-import mkdirp from 'mkdirp';
 import moment from 'moment';
 import NodeSSH from 'node-ssh';
 import * as path from 'path';
 import 'process';
-import rimraf from 'rimraf';
-import { pack } from 'tar-pack';
 import { LocalFileManager } from './LocalFileManager';
 import { ConfigStore } from './ConfigStore';
+import { FilePacker } from './FilePacker';
 
 export function CLI(args) {
   let configStore = new ConfigStore(process.cwd());
@@ -16,29 +14,15 @@ export function CLI(args) {
 
   let deployUser = configStore.getDeployUser();
   let deployServer = configStore.getDeployServer();
-  let remoteBaseDir = configStore.getDeployBaseDir();
+  let remoteBaseDir = configStore.getDeployBaseDir()
+    + "/" + configStore.getAppEnvironment();
   let appEnvironment = configStore.getAppEnvironment();
 
-  // We always want to include at least README.md and package.json, regardless
-  // if they are specified in the files array.
-  let filesToPack = ['README.md', 'package.json'];
-  if (configStore.getFiles()) {
-    filesToPack = filesToPack.concat(configStore.getFiles());
-  } else {
-    filesToPack = [process.cwd()];
-  }
-
-  for (let fileIdx in filesToPack) {
-    filesToPack[fileIdx] = path.resolve(".", filesToPack[fileIdx]);
-  }
-
-  let packedName = `${configStore.getName()}-v${configStore.getVersion()}.tgz`;
+  let filePacker = new FilePacker(configStore);
+  let packedName = filePacker.getPackedFileName();
 
   console.log(`Packaging to package/${packedName}...`);
-  mkdirp('package')
-    .then((made) => {
-      return packageFilesInto(filesToPack, packedName)
-    })
+  filePacker.packageFiles()
     .then(() => {
       return createBaseDirectoryOnServer(remoteBaseDir, remoteInstanceDir, deployUser, deployServer);
     })
@@ -63,42 +47,6 @@ export function CLI(args) {
       console.error(error);
       process.exit(1);
     });
-
-}
-
-function packageFilesInto(filesToPack, packedName) {
-  return new Promise((resolve, reject) => {
-    let write = fs.createWriteStream;
-    pack(process.cwd(), {
-      "fromBase": true,
-      "ignoreFiles": [],
-      "filter": (entry) => {
-        if (process.cwd() === entry.path) {
-          // Include the base directory a duh
-          return true;
-        }
-
-        if (filesToPack.includes(entry.path)) {
-          return true;
-        }
-
-        for (let idx in filesToPack) {
-          if (entry.path.startsWith(filesToPack[idx])) {
-            return true;
-          }
-        }
-
-        return false;
-      }
-    })
-      .pipe(write(path.join("package", packedName)))
-      .on('error', (error) => {
-        reject(error);
-      })
-      .on('close', () => {
-        resolve();
-      });
-  });
 }
 
 function createCurrentLink(remoteBaseDir, remoteInstanceDir, deployUser, deployServer) {
