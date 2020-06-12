@@ -3,7 +3,6 @@ import moment from 'moment';
 import NodeSSH from 'node-ssh';
 import * as path from 'path';
 import 'process';
-import { LocalFileManager } from './LocalFileManager';
 import { ConfigStore } from './ConfigStore';
 import { FilePacker } from './FilePacker';
 
