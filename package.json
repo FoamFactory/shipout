@@ -9,7 +9,8 @@
   "scripts": {
     "build": "babel src -d dist",
     "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "prepublishOnly": "yarn build"
   },
   "jest": {
     "transform": {
