@@ -1,6 +1,6 @@
 {
   "name": "@foamfactory/shipout",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A lightweight tool for deploying node applications from within a source repository",
   "main": "dist/index.js",
   "files": [
@@ -13,7 +13,8 @@
     "build": "babel src -d dist",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "prepublishOnly": "yarn build && git add package.json && git commit -m \"Bump version to ${NPM_PACKAGE_VERSION}\""
+    "env": "env",
+    "prepublishOnly": "yarn build && git add package.json && git commit -m \":arrow_up: Bump version to ${npm_package_version}\""
   },
   "jest": {
     "transform": {
