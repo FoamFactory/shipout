@@ -3,6 +3,7 @@
   "version": "0.0.2",
   "description": "A lightweight tool for deploying node applications from within a source repository",
   "main": "dist/index.js",
+  "files": [ "dist" ],
   "bin": {
     "shipout": "bin/shipout.js"
   },
