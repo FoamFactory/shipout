@@ -11,6 +11,7 @@
   "shipout": {
     "deploy_user": "someuser",
     "deploy_server": "server.somewhere.net",
+    "deploy_port": "3791",
     "deploy_base_dir": "/some/path",
     "app_environment": "staging"
   }

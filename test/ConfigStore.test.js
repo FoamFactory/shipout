@@ -10,6 +10,7 @@ describe('ConfigStore', () => {
       expect(configStore.getDeployUser()).toBe('someuser');
       expect(configStore.getDeployBaseDir()).toBe('/some/path');
       expect(configStore.getDeployServer()).toBe('server.somewhere.net');
+      expect(configStore.getDeployPort()).toBe('3791');
 
       expect(configStore.getName()).toBe('testproject');
       expect(configStore.getVersion()).toBe('1.0.0');
@@ -30,6 +31,7 @@ describe('ConfigStore', () => {
 
       expect(configStore.getAppEnvironment()).toBe('staging');
       expect(configStore.getDeployUser()).toBe('hello');
+      expect(configStore.getDeployPort()).toBe("22");
       expect(configStore.getDeployBaseDir()).toBe('/some/where');
       expect(configStore.getDeployServer()).toBe('localhost');
     });
@@ -46,7 +48,7 @@ describe('ConfigStore', () => {
     it ('will throw an exception if one of the environment variables is not specified', () => {
       expect(() => {
         new ConfigStore(__dirname + '/fixtures/projectWithNoConfig');
-      }).toThrow('The environment variable APP_ENVIRONMENT was not specified');
+      }).toThrow('Neither a package.json configuration nor an environment variable was specified for app_environment');
     });
   });
 });

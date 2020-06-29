@@ -24,6 +24,10 @@ export class ConfigStore {
     return this.configuration ? this.configuration.deploy_server : null;
   }
 
+  getDeployPort() {
+    return this.configuration ? this.configuration.deploy_port : null;
+  }
+
   getDeployBaseDir() {
     return this.configuration ? this.configuration.deploy_base_dir : null;
   }
@@ -48,6 +52,7 @@ export class ConfigStore {
     let app_environment = this.getVariableFromPackageJson("app_environment");
     let deploy_base_dir = this.getVariableFromPackageJson("deploy_base_dir");
     let deploy_server = this.getVariableFromPackageJson("deploy_server");
+    let deploy_port = this.getVariableFromPackageJson("deploy_port");
     let deploy_user = this.getVariableFromPackageJson("deploy_user");
 
     let retVal =  {
@@ -57,9 +62,15 @@ export class ConfigStore {
         : this.getVariableFromEnvironment("DEPLOY_BASE_DIR"),
       "deploy_server": deploy_server != null ? deploy_server
         : this.getVariableFromEnvironment("DEPLOY_SERVER"),
+      "deploy_port": deploy_port != null ? deploy_port
+        : this.getVariableFromEnvironment("DEPLOY_PORT"),
       "deploy_user": deploy_user != null ? deploy_user
         : this.getVariableFromEnvironment("DEPLOY_USER")
     };
+
+    if (!retVal.deploy_port) {
+      retVal.deploy_port = "22";
+    }
 
     let requiredVars = [ "app_environment", "deploy_base_dir", "deploy_server",
                          "deploy_user" ];

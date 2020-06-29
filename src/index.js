@@ -13,6 +13,7 @@ export function CLI(args) {
 
   let deployUser = configStore.getDeployUser();
   let deployServer = configStore.getDeployServer();
+  let deployPort = configStore.getDeployPort();
   let remoteBaseDir = configStore.getDeployBaseDir()
     + "/" + configStore.getAppEnvironment();
   let appEnvironment = configStore.getAppEnvironment();
