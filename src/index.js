@@ -24,7 +24,9 @@ export function CLI(args) {
   console.log(`Packaging to package/${packedName}...`);
   filePacker.packageFiles()
     .then(() => {
-      return createBaseDirectoryOnServer(remoteBaseDir, remoteInstanceDir, deployUser, deployServer);
+      let sshConfig = getSSHConfiguration(deployUser, deployServer);
+      return createBaseDirectoryOnServer(sshConfig, remoteBaseDir,
+                                         remoteInstanceDir);
     })
     .then(() => {
       console.log("Creating current link");
@@ -49,46 +51,27 @@ export function CLI(args) {
     });
 }
 
-function createCurrentLink(remoteBaseDir, remoteInstanceDir, deployUser, deployServer) {
-  return new Promise((resolve, reject) => {
-    let ssh = new NodeSSH();
-    let sshConfig = getSSHConfiguration(deployUser, deployServer);
-    ssh.connect(sshConfig)
-      .then(() => {
-        let command = `if [[ -h ${remoteBaseDir}/current ]]; then rm ${remoteBaseDir}/current; fi && ln -s ${remoteBaseDir}/${remoteInstanceDir} ${remoteBaseDir}/current`;
-        return ssh.execCommand(`${command}`);
-      })
-      .then(() => {
-        return ssh.dispose();
-      })
-      .then(() => {
-        resolve();
-      })
-      .catch((error) => {
-        reject(error);
-      });
-  });
-}
+export function createBaseDirectoryOnServer(sshConfig, remoteBaseDir,
+                                            remoteInstanceDir) {
+  let deployUser = sshConfig.username;
+  let deployServer = sshConfig.host;
+  let port = sshConfig.port;
 
-function createBaseDirectoryOnServer(remoteBaseDir, remoteInstanceDir, deployUser, deployServer) {
-  console.log(`Creating ${remoteBaseDir}/${remoteInstanceDir} as ${deployUser} on ${deployServer}...`);
+  console.log(`Creating ${remoteBaseDir}/${remoteInstanceDir} as ${deployUser} on ${deployServer}:${port}...`);
 
   return new Promise((resolve, reject) => {
+    let response = '';
     let ssh = new NodeSSH();
-    let sshConfig = getSSHConfiguration(deployUser, deployServer);
     ssh.connect(sshConfig)
     .then(() => {
       return ssh.execCommand(`mkdir -p "${remoteBaseDir}/${remoteInstanceDir}"`);
     })
-    // .then((data) => {
-    //   let command = `if [[ -h ${remoteBaseDir}/current ]]; then rm ${remoteBaseDir}/current; fi && ln -s ${remoteBaseDir}/${remoteInstanceDir} ${remoteBaseDir}/current`;
-    //   return ssh.execCommand(`${command}`);
-    // })
     .then((data) => {
+      response = data.stdout;
       return ssh.dispose();
     })
     .then(() => {
-      resolve();
+      resolve(response);
     })
     .catch((error) => {
       reject(error);
@@ -142,7 +125,7 @@ function unpackRemotely(packageName, remoteBaseDir, remoteInstanceDir, deployUse
   });
 }
 
-function getSSHConfiguration(deployUser, deployServer) {
+function getSSHConfiguration(deployUser, deployServer, deployPort) {
   let authSock;
   if (process.env.SSH_AUTH_SOCK) {
     authSock = process.env.SSH_AUTH_SOCK;
@@ -150,9 +133,8 @@ function getSSHConfiguration(deployUser, deployServer) {
 
   return {
     "host": deployServer,
+    "port": deployPort,
     "username": deployUser,
     "agent": authSock ? authSock : false
   };
 }
-
-// ssh deployer-bot@${DEPLOY_SERVER} "cd ${DEPLOY_ROOT_DIR}/${DEPLOY_DIR} && tar xzvf app-*.tgz"
