@@ -44,11 +44,24 @@ export class FilePacker {
       `-v${this.getConfigStore().getVersion()}.tgz`;
   }
 
+  getPackedFilePath() {
+    return path.join(this.getConfigStore().getProjectBaseDirectory(),
+                     'package');
+  }
+
   getConfigStore() {
     return this.configStore;
   }
 
+  /**
+   *  Package all files for a given NPM package.
+   *
+   *  @return {Promise} A {@link Promise} that will resolve with an object
+   *          containing the path of the packaged file, as well as the packaged
+   *          file name, on success and will reject with any errors encountered.
+   */
   packageFiles() {
+    let self = this;
     let filesToPack = this.getFilesToPack();
 
     return new Promise((resolve, reject) => {
@@ -77,17 +90,28 @@ export class FilePacker {
               return false;
             }
           })
-            .pipe(write(path.join(this.getConfigStore().getProjectBaseDirectory(), "package", this.getPackedFileName())))
+            .pipe(write(path.join(self.getConfigStore().getProjectBaseDirectory(), "package", self.getPackedFileName())))
             .on('error', (error) => {
               reject(error);
             })
             .on('close', () => {
-              resolve();
+              let packedPath = self.getPackedFilePath();
+              let packedFileName = self.getPackedFileName();
+              resolve({
+                path: packedPath,
+                fileName: packedFileName
+              });
             });
         });
     });
   }
 
+  /**
+   *  Clean up (i.e. remove) any packaged files.
+   *
+   *  @return {Promise} A {@link Promise} that will resolve with no arguments
+   *          on success, or reject with an error on failure.
+   */
   cleanUp() {
     return new Promise((resolve, reject) => {
       rimraf(path.join(this.getConfigStore().getProjectBaseDirectory(), 'package'),

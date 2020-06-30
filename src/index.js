@@ -3,8 +3,11 @@ import moment from 'moment';
 import NodeSSH from 'node-ssh';
 import * as path from 'path';
 import 'process';
+
 import { ConfigStore } from './ConfigStore';
 import { FilePacker } from './FilePacker';
+import RemoteWorker from '~/src/RemoteWorker';
+
 
 export function CLI(args) {
   let configStore = new ConfigStore(process.cwd());
@@ -19,26 +22,30 @@ export function CLI(args) {
   let appEnvironment = configStore.getAppEnvironment();
 
   let filePacker = new FilePacker(configStore);
-  let packedName = filePacker.getPackedFileName();
 
-  console.log(`Packaging to package/${packedName}...`);
+  let packedFilePath;
+  let packedFileName;
+
+  let remoteWorker = new RemoteWorker(deployUser, deployServer, deployPort,
+                                      remoteBaseDir, remoteInstanceDir);
+  console.log(`Packaging to package/${filePacker.getPackedFileName()}...`);
   filePacker.packageFiles()
-    .then(() => {
-      let sshConfig = getSSHConfiguration(deployUser, deployServer);
-      return createBaseDirectoryOnServer(sshConfig, remoteBaseDir,
-                                         remoteInstanceDir);
+    .then((packedFileInfo) => {
+      packedFilePath = packedFileInfo.path;
+      packedFileName = packedFileInfo.fileName;
+      return remoteWorker.createBaseDirectoryOnServer();
     })
     .then(() => {
       console.log("Creating current link");
-      return createCurrentLink(remoteBaseDir, remoteInstanceDir, deployUser, deployServer)
+      return remoteWorker.createCurrentLink();
     })
     .then(() => {
-      console.log(`Copying package/${packedName} to ${deployServer}`);
-      return copyPackageToServer(packedName, remoteBaseDir, remoteInstanceDir, deployUser, deployServer);
+      console.log(`Copying package/${packedFileName} to ${deployServer}`);
+      return remoteWorker.copyPackageToServer(packedFilePath, packedFileName);
     })
     .then(() => {
-      console.log(`Unpacking ${packedName} on remote host...`);
-      return unpackRemotely(packedName, remoteBaseDir, remoteInstanceDir, deployUser, deployServer);
+      console.log(`Unpacking ${packedFileName} on remote host...`);
+      return remoteWorker.unpackRemotely(packedFileName);
     })
     .then(() => {
       console.log("Done");
@@ -49,92 +56,4 @@ export function CLI(args) {
       console.error(error);
       process.exit(1);
     });
-}
-
-export function createBaseDirectoryOnServer(sshConfig, remoteBaseDir,
-                                            remoteInstanceDir) {
-  let deployUser = sshConfig.username;
-  let deployServer = sshConfig.host;
-  let port = sshConfig.port;
-
-  console.log(`Creating ${remoteBaseDir}/${remoteInstanceDir} as ${deployUser} on ${deployServer}:${port}...`);
-
-  return new Promise((resolve, reject) => {
-    let response = '';
-    let ssh = new NodeSSH();
-    ssh.connect(sshConfig)
-    .then(() => {
-      return ssh.execCommand(`mkdir -p "${remoteBaseDir}/${remoteInstanceDir}"`);
-    })
-    .then((data) => {
-      response = data.stdout;
-      return ssh.dispose();
-    })
-    .then(() => {
-      resolve(response);
-    })
-    .catch((error) => {
-      reject(error);
-    });
-  });
-}
-
-function copyPackageToServer(packageName, remoteBaseDir, remoteInstanceDir, deployUser, deployServer) {
-  return new Promise((resolve, reject) => {
-    let ssh = new NodeSSH();
-    let sshConfig = getSSHConfiguration(deployUser, deployServer);
-
-    ssh.connect(sshConfig)
-      .then(() => {
-        let localPath = path.resolve("./package/", packageName);
-
-        let remotePath = `${remoteBaseDir}/${remoteInstanceDir}/${packageName}`;
-        return ssh.putFile(localPath, remotePath);
-      })
-      .then(() => {
-        return ssh.dispose();
-      })
-      .then(() => {
-        resolve();
-      })
-      .catch((error) => {
-        reject(error);
-      });
-  });
-}
-
-function unpackRemotely(packageName, remoteBaseDir, remoteInstanceDir, deployUser, deployServer) {
-  return new Promise((resolve, reject) => {
-    let ssh = new NodeSSH();
-    let sshConfig = getSSHConfiguration(deployUser, deployServer);
-
-    ssh.connect(sshConfig)
-      .then(() => {
-        let command = `cd ${remoteBaseDir}/${remoteInstanceDir} && tar xzvf ${packageName}`;
-        return ssh.execCommand(command);
-      })
-      .then(() => {
-        return ssh.dispose();
-      })
-      .then(() => {
-        resolve();
-      })
-      .catch((error) => {
-        reject(error);
-      });
-  });
-}
-
-function getSSHConfiguration(deployUser, deployServer, deployPort) {
-  let authSock;
-  if (process.env.SSH_AUTH_SOCK) {
-    authSock = process.env.SSH_AUTH_SOCK;
-  }
-
-  return {
-    "host": deployServer,
-    "port": deployPort,
-    "username": deployUser,
-    "agent": authSock ? authSock : false
-  };
 }

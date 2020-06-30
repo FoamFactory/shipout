@@ -4,8 +4,8 @@ A lightweight tool for deploying node applications from within a source reposito
 ## To Do
   - [ ] Add cleanup of packaged data
   - [x] Write README on how to use
-  - [ ] Add tests
-  - [ ] Refactor into modules
+  - [x] Add tests
+  - [x] Refactor into modules
   - [ ] Add the ability to delete X number of old releases
   - [x] Deploy as a github package
 
