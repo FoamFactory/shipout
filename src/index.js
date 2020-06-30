@@ -21,6 +21,7 @@ export function CLI(args) {
   let filePacker = new FilePacker(configStore);
   let packedName = filePacker.getPackedFileName();
 
+  // let remoteWorker = new RemoteWorker()
   console.log(`Packaging to package/${packedName}...`);
   filePacker.packageFiles()
     .then(() => {
@@ -30,7 +31,8 @@ export function CLI(args) {
     })
     .then(() => {
       console.log("Creating current link");
-      return createCurrentLink(remoteBaseDir, remoteInstanceDir, deployUser, deployServer)
+      return createCurrentLink(getSSHConfiguration(), remoteBaseDir,
+                               remoteInstanceDir, deployUser, deployServer);
     })
     .then(() => {
       console.log(`Copying package/${packedName} to ${deployServer}`);
@@ -49,34 +51,6 @@ export function CLI(args) {
       console.error(error);
       process.exit(1);
     });
-}
-
-export function createBaseDirectoryOnServer(sshConfig, remoteBaseDir,
-                                            remoteInstanceDir) {
-  let deployUser = sshConfig.username;
-  let deployServer = sshConfig.host;
-  let port = sshConfig.port;
-
-  console.log(`Creating ${remoteBaseDir}/${remoteInstanceDir} as ${deployUser} on ${deployServer}:${port}...`);
-
-  return new Promise((resolve, reject) => {
-    let response = '';
-    let ssh = new NodeSSH();
-    ssh.connect(sshConfig)
-    .then(() => {
-      return ssh.execCommand(`mkdir -p "${remoteBaseDir}/${remoteInstanceDir}"`);
-    })
-    .then((data) => {
-      response = data.stdout;
-      return ssh.dispose();
-    })
-    .then(() => {
-      resolve(response);
-    })
-    .catch((error) => {
-      reject(error);
-    });
-  });
 }
 
 function copyPackageToServer(packageName, remoteBaseDir, remoteInstanceDir, deployUser, deployServer) {
