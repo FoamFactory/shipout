@@ -48,6 +48,10 @@ export function CLI(args) {
       return remoteWorker.unpackRemotely(packedFileName);
     })
     .then(() => {
+      console.log(`Cleaning up ${packedFilePath}...`);
+      return filePacker.cleanUp();
+    })
+    .then(() => {
       console.log("Done");
     })
     .catch((error) => {

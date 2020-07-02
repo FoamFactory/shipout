@@ -114,14 +114,16 @@ export class FilePacker {
    */
   cleanUp() {
     return new Promise((resolve, reject) => {
-      rimraf(path.join(this.getConfigStore().getProjectBaseDirectory(), 'package'),
-             (error) => {
-               if (error) {
-                 reject(error);
-               } else {
-                 resolve();
-               }
-             });
+      let joinedPath = path.join(this.getConfigStore().getProjectBaseDirectory(),
+                                 'package');
+      rimraf(joinedPath, (error) => {
+        console.log(error);
+        if (error) {
+         reject(error);
+        } else {
+         resolve();
+        }
+      });
     });
   }
 }
