@@ -1,0 +1,18 @@
+{
+  "name": "@loonslanding/namespaced-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "shipout": {
+    "deploy_server": "localhost",
+    "deploy_port": "4002",
+    "deploy_base_dir": "/tmp/shipout",
+    "app_environment": "test"
+  }
+}

@@ -44,6 +44,26 @@ export class ConfigStore {
     return this._getPackageConfig().name;
   }
 
+  isNamespacedProject() {
+    let name = this.getName();
+    let splitPath = name.split('/');
+    if (splitPath.length > 1) {
+      return true;
+    }
+
+    return false;
+  }
+
+  getNonNamespacedName() {
+    let name = this.getName();
+    let splitPath = name.split('/');
+    if (splitPath.length > 1) {
+      return splitPath.slice(-1);
+    }
+
+    return name;
+  }
+
   getProjectBaseDirectory() {
     return this.projectPath;
   }

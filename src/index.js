@@ -10,7 +10,30 @@ import RemoteWorker from '~/src/RemoteWorker';
 
 
 export function CLI(args) {
-  let configStore = new ConfigStore(process.cwd());
+  CLIAsync(args)
+    .then(() => {
+      console.log("Done");
+    })
+    .catch((error) => {
+      console.error("Unable to deploy files due to: ");
+      console.error(error.message);
+      console.error(error);
+      process.exit(1);
+    });
+}
+
+export function CLIAsync(args, privateKey) {
+  // args is pruned to eliminate node and the name of the called executable,
+  // assuming you invoked it with bin/shipout.js
+  let workingDir;
+
+  if (args.length > 0) {
+      workingDir = args[0];
+  } else {
+    workingDir = process.cwd();
+  }
+
+  let configStore = new ConfigStore(path.resolve(workingDir));
 
   let remoteInstanceDir = moment().format('YYYY-MM-DD_HH:mm:ss');
 
@@ -27,9 +50,12 @@ export function CLI(args) {
   let packedFileName;
 
   let remoteWorker = new RemoteWorker(deployUser, deployServer, deployPort,
-                                      remoteBaseDir, remoteInstanceDir);
-  console.log(`Packaging to package/${filePacker.getPackedFileName()}...`);
-  filePacker.packageFiles()
+                                      remoteBaseDir, remoteInstanceDir,
+                                      privateKey ? privateKey : null);
+
+  console.log(`Packaging to ${filePacker.getPackedFilePath()}/${filePacker.getPackedFileName()}...`);
+
+  return filePacker.packageFiles()
     .then((packedFileInfo) => {
       packedFilePath = packedFileInfo.path;
       packedFileName = packedFileInfo.fileName;
@@ -51,13 +77,4 @@ export function CLI(args) {
       console.log(`Cleaning up ${packedFilePath}...`);
       return filePacker.cleanUp();
     })
-    .then(() => {
-      console.log("Done");
-    })
-    .catch((error) => {
-      console.error("Unable to deploy files due to: ");
-      console.error(error.message);
-      console.error(error);
-      process.exit(1);
-    });
 }

@@ -5,7 +5,7 @@ import process from 'process';
 import Client from 'ssh2';
 import TestSshd from 'test-sshd';
 
-wrap.register(withSSHServer);
+wrap.register(withSSHMimicServer);
 wrap.register(withSFTPServer);
 
 export function isVerboseMode() {
@@ -114,8 +114,8 @@ function tearDownSSHServer() {
   });
 }
 
-export function withSSHServer() {
-  return this.extend('with an SSH server running on localhost:4000', {
+export function withSSHMimicServer() {
+  return this.extend('with an SSH server running on localhost:4000 that mimicks the input command', {
     beforeAll: function() {
       return setupSSHServer({port: 4000});
     },
@@ -127,13 +127,25 @@ export function withSSHServer() {
 }
 
 export function withSFTPServer() {
-  return this.extend('with an SFTP server running on localhost:4000', {
+  return this.extend('with an SFTP server running on localhost:4001', {
     beforeAll: function() {
-      return setupSSHServer({ port: 4000, mode: 'transfer'});
+      return setupSSHServer({ port: 4001, mode: 'transfer'});
     },
 
     afterAll: function() {
       return tearDownSSHServer();
+    }
+  });
+}
+
+export function withFullSSHServer() {
+  return this.extend('with an SSH server running on localhost:4002', {
+    beforeAll: function() {
+      return setupSSHServer({port: 4002, mode: 'exec'});
+    },
+
+    afterAll: function() {
+      return tearDownSSHServer()
     }
   });
 }
