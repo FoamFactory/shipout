@@ -1,11 +1,12 @@
 import { exec } from 'child_process';
 import fs from 'fs';
 import wrap from 'jest-wrap';
+import mkdirp from 'mkdirp';
 import path from 'path';
 import process from 'process';
 import rimraf from 'rimraf';
 import { isVerboseMode,
-         withSSHServer,
+         withSSHMimicServer,
          withSFTPServer,
          connectAndRunCommand } from './server_helper';
 
@@ -24,7 +25,7 @@ function setupFilePacker() {
 
   let packagePath = filePacker.getPackedFilePath();
   expect(packagePath).toMatch(path.join(process.cwd(), 'test',
-                              'fixtures', 'projectWithSomeFiles'));
+                              'fixtures', 'projectWithSomeFiles', 'package'));
 
   let packageName = filePacker.getPackedFileName();
   expect(packageName).toMatch('projectwithsomefiles-v1.0.0.tgz');
@@ -70,6 +71,12 @@ describe ('RemoteWorker', () => {
     let instanceDir = 'blorf';
 
     describe ('copyPackageToServer()', () => {
+      beforeEach(() => {
+        // Create the base directory, which is assumed to exist on the remote
+        // host
+        return mkdirp(path.join(baseDir, instanceDir));
+      });
+
       afterEach(() => {
         return new Promise((resolve, reject) => {
           let resultPath = path.join(baseDir, instanceDir);
@@ -91,7 +98,7 @@ describe ('RemoteWorker', () => {
 
         return new Promise((resolve, reject) => {
           let remoteWorker = new RemoteWorker(process.env.USER, 'localhost',
-                                              '4000', baseDir, instanceDir,
+                                              '4001', baseDir, instanceDir,
                                               global.shipout.privateKey);
           expect(remoteWorker.getSSHConfiguration().privateKey).toBeDefined();
 
@@ -99,6 +106,10 @@ describe ('RemoteWorker', () => {
             .then((packedFileInfo) => {
               let packagePath = packedFileInfo.path;
               let packageName = packedFileInfo.fileName;
+
+              let finalPackagePath = path.join(packagePath, packageName);
+              console.log(`Expecting ${finalPackagePath} to exist`);
+              expect(fs.existsSync(finalPackagePath)).toBe(true);
 
               remoteWorker.copyPackageToServer(packagePath, packageName)
                 .then((result) => {
@@ -117,7 +128,7 @@ describe ('RemoteWorker', () => {
     });
   });
 
-  wrap().withSSHServer().describe('with a base directory of /tmp and an instance directory of blorf', () => {
+  wrap().withSSHMimicServer().describe('with a base directory of /tmp and an instance directory of blorf', () => {
     let baseDir = '/tmp';
     let instanceDir = 'blorf';
 

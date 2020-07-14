@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 import process from 'process';
 import NodeSSH from 'node-ssh';
@@ -133,27 +134,41 @@ export default class RemoteWorker {
 
     return new Promise((resolve, reject) => {
       let result = '';
-      let ssh = new NodeSSH();
 
-      ssh.connect(sshConfig)
-        .then(() => {
-          let localPath = path.resolve(packagePath, packageName);
-          let remotePath = `${self.remoteBaseDir}/${self.remoteInstanceDir}/${packageName}`;
+      // Rather than doing this through SSH, if the deploy host is localhost,
+      // then we perform the copy directly. This enables us to perform testing
+      // using a single SSH server test instance, rather than trying to spin up
+      // multiple test instances, one with SFTP and one with SSH.
+      let localPath = path.resolve(packagePath, packageName);
+      let remotePath = `${self.remoteBaseDir}/${self.remoteInstanceDir}/${packageName}`;
 
-          return ssh.putFile(localPath, remotePath);
-        })
-        .then((data) => {
-          if (data) {
-            result = data.stdout;
+      if (sshConfig.host == '127.0.0.1' || sshConfig.host == 'localhost') {
+        fs.copyFile(localPath, remotePath, (error) => {
+          if (error) {
+            reject(error);
           }
-          return ssh.dispose();
-        })
-        .then(() => {
-          resolve(result);
-        })
-        .catch((error) => {
-          reject(error);
+          resolve();
         });
+      } else {
+        let ssh = new NodeSSH();
+
+        ssh.connect(sshConfig)
+          .then(() => {
+            return ssh.putFile(localPath, remotePath);
+          })
+          .then((data) => {
+            if (data) {
+              result = data.stdout;
+            }
+            return ssh.dispose();
+          })
+          .then(() => {
+            resolve(result);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      }
     });
   }
 

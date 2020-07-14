@@ -5,6 +5,8 @@ import * as process from 'process';
 import rimraf from 'rimraf';
 import { pack } from 'tar-pack';
 
+const PACKAGE_DIR_NAME = 'package';
+
 /**
  *  Object handling the packaging of files from within a particular app's
  *  project directory.
@@ -40,13 +42,29 @@ export class FilePacker {
   }
 
   getPackedFileName() {
-    return `${this.getConfigStore().getName()}` +
+    return `${this.getConfigStore().getNonNamespacedName()}` +
       `-v${this.getConfigStore().getVersion()}.tgz`;
   }
 
   getPackedFilePath() {
+    let packageDir = PACKAGE_DIR_NAME;
+
+    // If the project has a namespace, or a '/' in it, we need to make that
+    // directory, too.
+    let splitPath = this.getConfigStore().getName().split('/');
+    if (splitPath.length > 1) {
+      packageDir = path.join(PACKAGE_DIR_NAME,
+                             splitPath.slice(0, splitPath.length - 1)
+                                      .join(path.sep));
+    }
+
     return path.join(this.getConfigStore().getProjectBaseDirectory(),
-                     'package');
+                     packageDir);
+  }
+
+  getRootPackageDirectory() {
+    return path.join(this.getConfigStore().getProjectBaseDirectory(),
+                     PACKAGE_DIR_NAME);
   }
 
   getConfigStore() {
@@ -65,14 +83,14 @@ export class FilePacker {
     let filesToPack = this.getFilesToPack();
 
     return new Promise((resolve, reject) => {
-      mkdirp(path.join(this.getConfigStore().getProjectBaseDirectory(), 'package'))
+      mkdirp(self.getPackedFilePath())
         .then(() => {
           let write = fs.createWriteStream;
-          pack(this.getConfigStore().getProjectBaseDirectory(), {
+          pack(self.getConfigStore().getProjectBaseDirectory(), {
             "fromBase": true,
             "ignoreFiles": [],
             "filter": (entry) => {
-              if (this.getConfigStore().getProjectBaseDirectory() === entry.path) {
+              if (self.getConfigStore().getProjectBaseDirectory() === entry.path) {
                 // Include the base directory a duh
                 return true;
               }
@@ -90,7 +108,8 @@ export class FilePacker {
               return false;
             }
           })
-            .pipe(write(path.join(self.getConfigStore().getProjectBaseDirectory(), "package", self.getPackedFileName())))
+            .pipe(write(path.join(self.getPackedFilePath(),
+                                  self.getPackedFileName())))
             .on('error', (error) => {
               reject(error);
             })
@@ -113,10 +132,11 @@ export class FilePacker {
    *          on success, or reject with an error on failure.
    */
   cleanUp() {
+    let self = this;
     return new Promise((resolve, reject) => {
-      let joinedPath = path.join(this.getConfigStore().getProjectBaseDirectory(),
-                                 'package');
-      rimraf(joinedPath, (error) => {
+      let packagePath = self.getRootPackageDirectory();
+
+      rimraf(packagePath, (error) => {
         console.log(error);
         if (error) {
          reject(error);
