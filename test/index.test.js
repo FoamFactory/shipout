@@ -24,7 +24,7 @@ describe ('shipout command line', () => {
 
       return new Promise((resolve, reject) => {
         CLIAsync([__dirname + '/fixtures/namespacedProject'],
-                 global.shipout.privateKey)
+                 global.shipout.privateKey, true)
           .then(() => {
             // Package directory should be cleaned up
             expect(fs.existsSync(__dirname + '/fixtures/namespacedProject/package')).toBe(false);

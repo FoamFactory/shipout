@@ -34,6 +34,12 @@ function setupFilePacker() {
 }
 
 describe ('RemoteWorker', () => {
+  describe('after setting up the remote worker', () => {
+    it ('should have X stages by default', () => {
+
+    });
+  });
+
   describe ('#getSSHConfiguration()', () => {
     describe ('when the SSH_AUTH_SOCK environment variable is set', () => {
       beforeEach(() => {
@@ -108,7 +114,6 @@ describe ('RemoteWorker', () => {
               let packageName = packedFileInfo.fileName;
 
               let finalPackagePath = path.join(packagePath, packageName);
-              console.log(`Expecting ${finalPackagePath} to exist`);
               expect(fs.existsSync(finalPackagePath)).toBe(true);
 
               remoteWorker.copyPackageToServer(packagePath, packageName)
@@ -128,7 +133,8 @@ describe ('RemoteWorker', () => {
     });
   });
 
-  wrap().withSSHMimicServer().describe('with a base directory of /tmp and an instance directory of blorf', () => {
+  wrap().withSSHMimicServer()
+  .describe('with a base directory of /tmp and an instance directory of blorf', () => {
     let baseDir = '/tmp';
     let instanceDir = 'blorf';
 

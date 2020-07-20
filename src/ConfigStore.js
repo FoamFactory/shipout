@@ -1,15 +1,22 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as process from 'process';
+import moment from 'moment';
 
 /**
  *  A configuration store based off of either a client's `package.json` or
  *  environment variables.
  */
 export class ConfigStore {
-  constructor(projectPath) {
+  constructor(projectPath, isTestMode=false) {
     this.projectPath = projectPath;
     this.configuration = this.getConfiguration();
+    this.remoteInstanceDir = moment().format('YYYY-MM-DD_HH:mm:ss');
+    this.isVerboseMode = false;
+  }
+
+  isTestMode() {
+    return this.isTestMode;
   }
 
   getAppEnvironment() {
@@ -28,8 +35,16 @@ export class ConfigStore {
     return this.configuration ? this.configuration.deploy_port : null;
   }
 
-  getDeployBaseDir() {
+  getDeployRootDir() {
     return this.configuration ? this.configuration.deploy_base_dir : null;
+  }
+
+  getRemoteBaseDir() {
+    return this.getDeployRootDir() + "/" + this.getAppEnvironment();
+  }
+
+  getRemoteInstanceDir() {
+    return this.remoteInstanceDir;
   }
 
   getFiles() {

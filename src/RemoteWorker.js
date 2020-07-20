@@ -34,6 +34,40 @@ export default class RemoteWorker {
     this.remoteBaseDir = remoteBaseDir;
     this.remoteInstanceDir = remoteInstanceDir;
     this.privateKey = privateKey;
+    this.stages = [];
+  }
+
+  setStages(stages) {
+    let self = this;
+    this.stages = stages;
+
+    let previousStage = null;
+    for (let nextStageIdx in self.stages) {
+      let currentStage = self.stages[nextStageIdx];
+      if (previousStage) {
+        previousStage.setNextStage(currentStage);
+      }
+
+      previousStage = currentStage;
+    }
+  }
+
+  run() {
+    let self = this;
+
+    return new Promise((resolve, reject) => {
+      if (self.stages.length > 0) {
+        return self.stages[0].run()
+          .then(() => {
+            resolve();
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      } else {
+        resolve();
+      }
+    });
   }
 
   /**
@@ -89,28 +123,26 @@ export default class RemoteWorker {
     let deployServer = sshConfig.host;
     let port = sshConfig.port;
 
-    console.log(`Creating ${remoteBaseDir}/${remoteInstanceDir} as ${deployUser} on ${deployServer}:${port}...`);
-
     return new Promise((resolve, reject) => {
       let response = '';
       let ssh = new NodeSSH();
       ssh.connect(sshConfig)
-      .then(() => {
-        return ssh.execCommand(`mkdir -p "${remoteBaseDir}/${remoteInstanceDir}"`);
-      })
-      .then((data) => {
-        if (data) {
-          response = data.stdout;
-        }
+        .then(() => {
+          return ssh.execCommand(`mkdir -p "${remoteBaseDir}/${remoteInstanceDir}"`);
+        })
+        .then((data) => {
+          if (data) {
+            response = data.stdout;
+          }
 
-        return ssh.dispose();
-      })
-      .then(() => {
-        resolve(response);
-      })
-      .catch((error) => {
-        reject(error);
-      });
+          return ssh.dispose();
+        })
+        .then(() => {
+          resolve(response);
+        })
+        .catch((error) => {
+          reject(error);
+        });
     });
   }
 
@@ -129,8 +161,6 @@ export default class RemoteWorker {
   copyPackageToServer(packagePath, packageName) {
     let self = this;
     let sshConfig = this.getSSHConfiguration();
-
-    console.log(`Copying package to server with package path: ${packagePath} and file name: ${packageName}`);
 
     return new Promise((resolve, reject) => {
       let result = '';
