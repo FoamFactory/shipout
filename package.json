@@ -33,6 +33,10 @@
     "name": "Scott Johnson",
     "email": "jaywir3@gmail.com"
   },
+  "shipout": {
+    "keep_releases": -1
+  },
+
   "license": "MPL-2.0",
   "devDependencies": {
     "@babel/cli": "^7.10.1",

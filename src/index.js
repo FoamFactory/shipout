@@ -13,6 +13,7 @@ import { CopyPackageToServerStage,
          MakeDirectoryStage,
          PackageRemoteWorkStage,
          LocalCleanupStage,
+         RemoteCleanupStage,
          UnpackStage } from '~/src/RemoteWorkStage';
 
 let logger = new Logger({
@@ -27,7 +28,7 @@ let logger = new Logger({
 export function CLI(args) {
   logger.info("Shipout Starting");
 
-  CLIAsync(args)
+  CLIAsync(args, null, false)
     .then(() => {
       logger.info("Shipout Complete");
     })
@@ -74,6 +75,7 @@ export function CLIAsync(args, privateKey, isTestMode=false) {
                           new CreateCurrentLinkStage(options),
                           new CopyPackageToServerStage(options),
                           new UnpackStage(options),
+                          new RemoteCleanupStage(options),
                           new LocalCleanupStage(options)]);
   return remoteWorker.run();
 }

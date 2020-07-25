@@ -13,10 +13,11 @@ export class ConfigStore {
     this.configuration = this.getConfiguration();
     this.remoteInstanceDir = moment().format('YYYY-MM-DD_HH:mm:ss');
     this.isVerboseMode = false;
+    this.testMode = isTestMode;
   }
 
   isTestMode() {
-    return this.isTestMode;
+    return this.testMode;
   }
 
   getAppEnvironment() {
@@ -57,6 +58,11 @@ export class ConfigStore {
 
   getName() {
     return this._getPackageConfig().name;
+  }
+
+  getNumDirectoriesToKeep() {
+    let numDirs = this.getVariableFromPackageJson('keep_releases');
+    return !!(numDirs) ? numDirs : 5;
   }
 
   isNamespacedProject() {

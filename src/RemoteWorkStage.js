@@ -244,6 +244,42 @@ export class UnpackStage extends RemoteWorkStage {
 }
 
 /**
+ *  A `RemoteWorkStage` that cleans up all but a specified number of "old"
+ *  releases on the remote host. Relies on the `package.json` configuration
+ *  option `keep_releases`.
+ */
+export class RemoteCleanupStage extends RemoteWorkStage {
+  constructor (options) {
+    super(Object.assign(options, { 'name': 'remoteCleanup' }));
+  }
+
+  run (data) {
+    let self = this;
+
+    let returnData = data;
+
+    let numDirectoriesToKeep = self.getConfigStore().getNumDirectoriesToKeep();
+    let isTestMode = self.getConfigStore().isTestMode();
+
+    if (!self.getConfigStore().isTestMode()) {
+      if (numDirectoriesToKeep < 0) {
+        self.getLogger().info("Skipping cleanup of remote releases");
+      } else {
+        self.getLogger().info(`Cleaning up all but latest ${numDirectoriesToKeep} releases on the remote host`);
+      }
+    }
+
+    return self.getParentWorker().cleanUpRemoteDirectories(numDirectoriesToKeep)
+      .then((newData) => {
+        return self.runNextStage(returnData);
+      })
+      .catch((error) => {
+        self.reportError(error);
+      });
+  }
+}
+
+/**
  *  A `RemoteWorkStage` that cleans up the `package/` directory on the local
  *  host.
  */
