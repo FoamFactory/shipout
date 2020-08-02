@@ -54,7 +54,7 @@ your `package.json` file with the values you wish to specify:
 | Name                 | Package.json Key Name  | Environment Variable Name | Description |
 | -------------------- | ---------------------- | ------------------------- | ----------- |
 | App Environment      | `app_environment`      | `APP_ENVIRONMENT`         | The environment which is being deployed. This is used if you want, for example, a `staging` and `production` version of the app on the same server. It should be a string. If in doubt, use `"production"`. |
-| Deploy Username      | `deploy_user`          | `DEPLOY_USER`             | The username of the user to login with to the remote host. No default. |
+| Deploy Username      | `deploy_user`          | `DEPLOY_USER`             | The username of the user to login with to the remote host. Defaults to the username of the current user logged in to the local system. |
 | Deploy Host          | `deploy_server`        | `DEPLOY_SERVER`           | The hostname (or IP address) of the remote host to deploy to. No default. |
 | Base Directory       | `deploy_base_dir`      | `DEPLOY_BASE_DIR`         | The base directory, as an absolute path, that contains the releases on the remote host. No default. |
 | Old Releases to Keep | `keep_releases`        | N/A                       | The number of old releases to keep on the remote host. Defaults to `5` if not specified. Set to `-1` to disable cleanup of old releases. |
