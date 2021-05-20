@@ -48,7 +48,7 @@
     "jest": "^26.0.1",
     "jest-serial-runner": "^1.1.0",
     "jest-wrap": "^1.7.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "pretty-logger": "^0.1.2",
     "test-sshd": "^0.0.6"
   },
