@@ -119,7 +119,10 @@ describe ('RemoteWorker', () => {
               remoteWorker.copyPackageToServer(packagePath, packageName)
                 .then((result) => {
                   expect(fs.existsSync(path.join(baseDir, instanceDir, packageName))).toBe(true);
-                  resolve();
+                  filePacker.cleanUp()
+                    .then(() => {
+                      resolve();
+                    });
                 })
                 .catch((error) => {
                   reject(error);
