@@ -1,6 +1,6 @@
 {
   "name": "@foamfactory/shipout",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "A lightweight tool for deploying node applications from within a source repository",
   "main": "dist/index.js",
   "files": [
@@ -45,19 +45,19 @@
     "@babel/plugin-proposal-class-properties": "^7.10.1",
     "@babel/preset-env": "^7.10.2",
     "babel-plugin-root-import": "^6.5.0",
-    "colors": "^1.4.0",
     "jest": "^26.0.1",
     "jest-serial-runner": "^1.1.0",
     "jest-wrap": "^1.7.0",
     "lodash": "^4.17.21",
-    "pretty-logger": "^0.1.2",
     "test-sshd": "^0.0.6"
   },
   "dependencies": {
     "babel-jest": "^26.0.1",
+    "colors": "^1.4.0",
     "mkdirp": "^1.0.4",
     "moment": "^2.26.0",
     "node-ssh": "^10.0.2",
+    "pretty-logger": "^0.1.2",
     "rimraf": "^3.0.2",
     "ssh2": "^0.8.9",
     "tar-pack": "^3.4.1"
