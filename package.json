@@ -1,10 +1,11 @@
 {
   "name": "@foamfactory/shipout",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "A lightweight tool for deploying node applications from within a source repository",
   "main": "dist/index.js",
   "files": [
-    "dist"
+    "dist",
+    "bin"
   ],
   "bin": {
     "shipout": "bin/shipout.js"
