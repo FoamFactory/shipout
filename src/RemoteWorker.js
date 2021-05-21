@@ -344,6 +344,14 @@ export default class RemoteWorker {
    */
   getSSHConfiguration() {
     let authSock;
+    if (!this.privateKey) {
+      if (process.env.SSH_AUTH_SOCK) {
+        authSock = process.env.SSH_AUTH_SOCK
+      } else {
+        this._resolvePrivateKeyIfNotExist();
+      }
+    }
+
     if (!this.privateKey && process.env.SSH_AUTH_SOCK) {
       authSock = process.env.SSH_AUTH_SOCK;
     }
@@ -355,5 +363,21 @@ export default class RemoteWorker {
       "privateKey": this.privateKey,
       "agent": authSock ? authSock : false
     };
+  }
+
+  getPrivateKey() {
+    return this.privateKey;
+  }
+
+  _resolvePrivateKeyIfNotExist() {
+    if (!this.privateKey) {
+      const sshKeyPath = path.join(process.env.HOME, '.ssh', 'id_rsa');
+      let data = fs.readFileSync(sshKeyPath, 'utf8');
+      if (!data) {
+        throw new Error('Unable to read private key from id_rsa');
+      }
+
+      this.privateKey = data;
+    }
   }
 }

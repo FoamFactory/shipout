@@ -4,6 +4,7 @@ import * as path from 'path';
 import 'process';
 import Logger from 'pretty-logger';
 import * as colors from 'colors';
+import packageJson from '../package';
 
 import { ConfigStore } from './ConfigStore';
 import { FilePacker } from './FilePacker';
@@ -26,7 +27,7 @@ let logger = new Logger({
 });
 
 export function CLI(args) {
-  logger.info("Shipout Starting");
+  logger.info(`Shipout v${packageJson.version} initialized`);
 
   CLIAsync(args, null, false)
     .then(() => {
@@ -64,6 +65,7 @@ export function CLIAsync(args, privateKey, isTestMode=false) {
                                       configStore.getRemoteBaseDir(),
                                       configStore.getRemoteInstanceDir(),
                                       privateKey ? privateKey : null);
+
 
   let options = {
     'parentWorker': remoteWorker,
