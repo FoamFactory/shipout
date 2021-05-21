@@ -34,6 +34,40 @@ export default class RemoteWorker {
     this.remoteBaseDir = remoteBaseDir;
     this.remoteInstanceDir = remoteInstanceDir;
     this.privateKey = privateKey;
+    this.stages = [];
+  }
+
+  setStages(stages) {
+    let self = this;
+    this.stages = stages;
+
+    let previousStage = null;
+    for (let nextStageIdx in self.stages) {
+      let currentStage = self.stages[nextStageIdx];
+      if (previousStage) {
+        previousStage.setNextStage(currentStage);
+      }
+
+      previousStage = currentStage;
+    }
+  }
+
+  run() {
+    let self = this;
+
+    return new Promise((resolve, reject) => {
+      if (self.stages.length > 0) {
+        return self.stages[0].run()
+          .then(() => {
+            resolve();
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      } else {
+        resolve();
+      }
+    });
   }
 
   /**
@@ -52,6 +86,7 @@ export default class RemoteWorker {
       let ssh = new NodeSSH();
       let sshConfig = self.getSSHConfiguration();
       let result = '';
+
       ssh.connect(sshConfig)
         .then(() => {
           let command = `if [[ -h ${remoteBaseDir}/current ]]; then rm ${remoteBaseDir}/current; fi && ln -s ${remoteBaseDir}/${remoteInstanceDir} ${remoteBaseDir}/current`;
@@ -65,6 +100,100 @@ export default class RemoteWorker {
         })
         .then(() => {
           resolve(result);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  }
+
+  cleanUpRemoteDirectories(numDirectoriesToKeep) {
+    let self = this;
+
+    return new Promise((resolve, reject) => {
+      let remoteBaseDir = self.remoteBaseDir;
+      let ssh = new NodeSSH();
+      let sshConfig = self.getSSHConfiguration();
+      ssh.connect(sshConfig)
+        .then(() => {
+          let command = `ls -l ${remoteBaseDir} | awk '{ print $9 }'`;
+          return ssh.execCommand(command);
+        })
+        .then((data) => {
+          return new Promise((resolve, reject) => {
+            let result = data.stdout.split('\n');
+            let directoriesToDispose = [];
+            let hasCurrentLink = result.includes('current');
+
+            if (hasCurrentLink) {
+              result = result.slice(0, result.length - 1);
+            }
+
+            let directoriesToKeep = [];
+            if (numDirectoriesToKeep > result.length) {
+              directoriesToKeep.concat(result);
+            } else {
+              for (let i = 0; i < numDirectoriesToKeep; i++) {
+                let idx = result.length - 1 - i;
+                directoriesToKeep.push(result[idx]);
+              }
+
+              for (let i = 0; i < result.length - numDirectoriesToKeep; i++) {
+                directoriesToDispose.push(result[i]);
+              }
+            }
+
+            if (!hasCurrentLink) {
+              resolve({
+                directoriesToKeep: directoriesToKeep,
+                hasCurrentLink: false,
+                directoriesToDispose: directoriesToDispose
+              });
+            } else {
+              let command = `readlink -f ${remoteBaseDir}/current`;
+              ssh.execCommand(command)
+                .then((commandResult) => {
+                  let commandResultSplit = commandResult.stdout.split('/');
+                  let subDir = commandResultSplit[commandResultSplit.length - 1];
+                  if (!directoriesToKeep.includes(subDir)) {
+                    directoriesToKeep.push(subDir);
+                  }
+
+                  if (directoriesToDispose.includes(subDir)) {
+                    let idx = directoriesToDispose.indexOf(subDir);
+                    if (idx > -1) {
+                      directoriesToDispose.splice(idx, 1);
+                    }
+                  }
+
+                  resolve({
+                    directoriesToKeep: directoriesToKeep,
+                    directoriesToDispose: directoriesToDispose,
+                    hasCurrentLink: true
+                  });
+                });
+            }
+          });
+        })
+        .then((data) => {
+          if (numDirectoriesToKeep >= 0) {
+            let command = `rm -rf`;
+            for (let i = 0; i < data.directoriesToDispose.length; i++) {
+              command = command.concat(` ${remoteBaseDir}/${data.directoriesToDispose[i]}`);
+            }
+
+            return ssh.execCommand(command);
+          } else {
+            return new Promise((resolve, reject) => {
+              resolve();
+            })
+          }
+        })
+        .then((data) => {
+          return ssh.dispose();
+        })
+        .then((data) => {
+          resolve();
         })
         .catch((error) => {
           reject(error);
@@ -89,28 +218,26 @@ export default class RemoteWorker {
     let deployServer = sshConfig.host;
     let port = sshConfig.port;
 
-    console.log(`Creating ${remoteBaseDir}/${remoteInstanceDir} as ${deployUser} on ${deployServer}:${port}...`);
-
     return new Promise((resolve, reject) => {
       let response = '';
       let ssh = new NodeSSH();
       ssh.connect(sshConfig)
-      .then(() => {
-        return ssh.execCommand(`mkdir -p "${remoteBaseDir}/${remoteInstanceDir}"`);
-      })
-      .then((data) => {
-        if (data) {
-          response = data.stdout;
-        }
+        .then(() => {
+          return ssh.execCommand(`mkdir -p "${remoteBaseDir}/${remoteInstanceDir}"`);
+        })
+        .then((data) => {
+          if (data) {
+            response = data.stdout;
+          }
 
-        return ssh.dispose();
-      })
-      .then(() => {
-        resolve(response);
-      })
-      .catch((error) => {
-        reject(error);
-      });
+          return ssh.dispose();
+        })
+        .then(() => {
+          resolve(response);
+        })
+        .catch((error) => {
+          reject(error);
+        });
     });
   }
 
@@ -129,8 +256,6 @@ export default class RemoteWorker {
   copyPackageToServer(packagePath, packageName) {
     let self = this;
     let sshConfig = this.getSSHConfiguration();
-
-    console.log(`Copying package to server with package path: ${packagePath} and file name: ${packageName}`);
 
     return new Promise((resolve, reject) => {
       let result = '';

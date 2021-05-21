@@ -1,14 +1,6 @@
 # shipout
 A lightweight tool for deploying node applications from within a source repository
 
-## To Do
-  - [ ] Add cleanup of packaged data
-  - [x] Write README on how to use
-  - [x] Add tests
-  - [x] Refactor into modules
-  - [ ] Add the ability to delete X number of old releases
-  - [x] Deploy as a github package
-
 ## Usage
 1. You will need to add the following to an `.npmrc` file in order to get access
 to packages hosted by `@foamfactory` on github packages:
@@ -59,12 +51,13 @@ your `package.json` file with the values you wish to specify:
   ...
 ```
 
-| Name            | Package.json Key Name  | Environment Variable Name | Description |
-| --------------- | ---------------------- | ------------------------- | ----------- |
-| App Environment | `app_environment`      | `APP_ENVIRONMENT`         | The environment which is being deployed. This is used if you want, for example, a `staging` and `production` version of the app on the same server. It should be a string. If in doubt, use `"production"`. |
-| Deploy Username | `deploy_user`          | `DEPLOY_USER`             |             |
-| Deploy Host     | `deploy_server`        | `DEPLOY_SERVER`           |             |
-| Base Directory  | `deploy_base_dir`      | `DEPLOY_BASE_DIR`         |             |
+| Name                 | Package.json Key Name  | Environment Variable Name | Description |
+| -------------------- | ---------------------- | ------------------------- | ----------- |
+| App Environment      | `app_environment`      | `APP_ENVIRONMENT`         | The environment which is being deployed. This is used if you want, for example, a `staging` and `production` version of the app on the same server. It should be a string. If in doubt, use `"production"`. |
+| Deploy Username      | `deploy_user`          | `DEPLOY_USER`             | The username of the user to login with to the remote host. Defaults to the username of the current user logged in to the local system. |
+| Deploy Host          | `deploy_server`        | `DEPLOY_SERVER`           | The hostname (or IP address) of the remote host to deploy to. No default. |
+| Base Directory       | `deploy_base_dir`      | `DEPLOY_BASE_DIR`         | The base directory, as an absolute path, that contains the releases on the remote host. No default. |
+| Old Releases to Keep | `keep_releases`        | N/A                       | The number of old releases to keep on the remote host. Defaults to `5` if not specified. Set to `-1` to disable cleanup of old releases. |
 
 ## Running Tests
 In order to run tests, you will need to install [Docker](http://www.docker.com) on your system. We don't use Docker to run tests, other than for testing SSH capabilities, so if you don't have Docker installed, you should still be able to run most of the tests.

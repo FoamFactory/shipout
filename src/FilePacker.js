@@ -137,7 +137,6 @@ export class FilePacker {
       let packagePath = self.getRootPackageDirectory();
 
       rimraf(packagePath, (error) => {
-        console.log(error);
         if (error) {
          reject(error);
         } else {

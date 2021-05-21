@@ -8,7 +8,7 @@ describe('ConfigStore', () => {
 
       expect(configStore.getAppEnvironment()).toBe('staging');
       expect(configStore.getDeployUser()).toBe('someuser');
-      expect(configStore.getDeployBaseDir()).toBe('/some/path');
+      expect(configStore.getDeployRootDir()).toBe('/some/path');
       expect(configStore.getDeployServer()).toBe('server.somewhere.net');
       expect(configStore.getDeployPort()).toBe('3791');
 
@@ -32,7 +32,7 @@ describe('ConfigStore', () => {
       expect(configStore.getAppEnvironment()).toBe('staging');
       expect(configStore.getDeployUser()).toBe('hello');
       expect(configStore.getDeployPort()).toBe("22");
-      expect(configStore.getDeployBaseDir()).toBe('/some/where');
+      expect(configStore.getDeployRootDir()).toBe('/some/where');
       expect(configStore.getDeployServer()).toBe('localhost');
     });
   });

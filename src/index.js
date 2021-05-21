@@ -1,18 +1,36 @@
 import * as fs from 'fs';
-import moment from 'moment';
 import NodeSSH from 'node-ssh';
 import * as path from 'path';
 import 'process';
+import Logger from 'pretty-logger';
+import * as colors from 'colors';
 
 import { ConfigStore } from './ConfigStore';
 import { FilePacker } from './FilePacker';
 import RemoteWorker from '~/src/RemoteWorker';
+import { CopyPackageToServerStage,
+         CreateCurrentLinkStage,
+         MakeDirectoryStage,
+         PackageRemoteWorkStage,
+         LocalCleanupStage,
+         RemoteCleanupStage,
+         UnpackStage } from '~/src/RemoteWorkStage';
 
+let logger = new Logger({
+  showTimestamp: false,
+  info: "gray",
+  error: "red",
+  warn: "yellow",
+  debug: "green",
+  prefix: '[' + `Main Process`.green + ']'
+});
 
 export function CLI(args) {
-  CLIAsync(args)
+  logger.info("Shipout Starting");
+
+  CLIAsync(args, null, false)
     .then(() => {
-      console.log("Done");
+      logger.info("Shipout Complete");
     })
     .catch((error) => {
       console.error("Unable to deploy files due to: ");
@@ -22,7 +40,7 @@ export function CLI(args) {
     });
 }
 
-export function CLIAsync(args, privateKey) {
+export function CLIAsync(args, privateKey, isTestMode=false) {
   // args is pruned to eliminate node and the name of the called executable,
   // assuming you invoked it with bin/shipout.js
   let workingDir;
@@ -33,48 +51,31 @@ export function CLIAsync(args, privateKey) {
     workingDir = process.cwd();
   }
 
-  let configStore = new ConfigStore(path.resolve(workingDir));
-
-  let remoteInstanceDir = moment().format('YYYY-MM-DD_HH:mm:ss');
-
-  let deployUser = configStore.getDeployUser();
-  let deployServer = configStore.getDeployServer();
-  let deployPort = configStore.getDeployPort();
-  let remoteBaseDir = configStore.getDeployBaseDir()
-    + "/" + configStore.getAppEnvironment();
-  let appEnvironment = configStore.getAppEnvironment();
+  let configStore = new ConfigStore(path.resolve(workingDir), isTestMode);
 
   let filePacker = new FilePacker(configStore);
 
   let packedFilePath;
   let packedFileName;
 
-  let remoteWorker = new RemoteWorker(deployUser, deployServer, deployPort,
-                                      remoteBaseDir, remoteInstanceDir,
+  let remoteWorker = new RemoteWorker(configStore.getDeployUser(),
+                                      configStore.getDeployServer(),
+                                      configStore.getDeployPort(),
+                                      configStore.getRemoteBaseDir(),
+                                      configStore.getRemoteInstanceDir(),
                                       privateKey ? privateKey : null);
 
-  console.log(`Packaging to ${filePacker.getPackedFilePath()}/${filePacker.getPackedFileName()}...`);
+  let options = {
+    'parentWorker': remoteWorker,
+    'configStore': configStore
+  };
 
-  return filePacker.packageFiles()
-    .then((packedFileInfo) => {
-      packedFilePath = packedFileInfo.path;
-      packedFileName = packedFileInfo.fileName;
-      return remoteWorker.createBaseDirectoryOnServer();
-    })
-    .then(() => {
-      console.log("Creating current link");
-      return remoteWorker.createCurrentLink();
-    })
-    .then(() => {
-      console.log(`Copying package/${packedFileName} to ${deployServer}`);
-      return remoteWorker.copyPackageToServer(packedFilePath, packedFileName);
-    })
-    .then(() => {
-      console.log(`Unpacking ${packedFileName} on remote host...`);
-      return remoteWorker.unpackRemotely(packedFileName);
-    })
-    .then(() => {
-      console.log(`Cleaning up ${packedFilePath}...`);
-      return filePacker.cleanUp();
-    })
+  remoteWorker.setStages([new PackageRemoteWorkStage(options),
+                          new MakeDirectoryStage(options),
+                          new CreateCurrentLinkStage(options),
+                          new CopyPackageToServerStage(options),
+                          new UnpackStage(options),
+                          new RemoteCleanupStage(options),
+                          new LocalCleanupStage(options)]);
+  return remoteWorker.run();
 }
