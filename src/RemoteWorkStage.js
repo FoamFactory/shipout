@@ -115,11 +115,11 @@ export class MakeDirectoryStage extends RemoteWorkStage {
     let self = this;
 
     let configStore = self.getConfigStore();
-    let remoteBaseDir = configStore.getRemoteBaseDir();
-    let remoteInstanceDir = configStore.getRemoteInstanceDir();
-    let deployUser = configStore.getDeployUser();
-    let deployServer = configStore.getDeployServer();
-    let port = configStore.getDeployPort();
+    let remoteBaseDir = configStore.getRemoteBaseDirectory();
+    let remoteInstanceDir = configStore.getRemoteInstanceDirectory();
+    let deployUser = configStore.getUsername();
+    let deployServer = configStore.getHost();
+    let port = configStore.getPort();
 
     let returnData = data;
 
@@ -191,7 +191,7 @@ export class CopyPackageToServerStage extends RemoteWorkStage {
     let returnData = data;
     let packedFileName = data.fileName;
     let packedFilePath = data.path;
-    let deployServer = self.getConfigStore().getDeployServer();
+    let deployServer = self.getConfigStore().getHost();
 
     if (!self.getConfigStore().isTestMode()) {
       self.getLogger().info(`Copying package/${packedFileName} to ${deployServer}`);
@@ -258,7 +258,7 @@ export class RemoteCleanupStage extends RemoteWorkStage {
 
     let returnData = data;
 
-    let numDirectoriesToKeep = self.getConfigStore().getNumDirectoriesToKeep();
+    let numDirectoriesToKeep = self.getConfigStore().getNumReleasesToKeep();
     let isTestMode = self.getConfigStore().isTestMode();
 
     if (!self.getConfigStore().isTestMode()) {

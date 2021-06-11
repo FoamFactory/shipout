@@ -13,6 +13,10 @@ wrap.register(withFullSSHServer);
 
 describe ('shipout command line', () => {
   wrap().withFullSSHServer().describe('when given a project that has a namespace', () => {
+    beforeEach(() => {
+      process.env.APP_ENVIRONMENT = 'staging';
+    });
+
     afterEach(() => {
       if (fs.existsSync('/tmp/shipout')) {
         rimraf.sync('/tmp/shipout');
@@ -20,8 +24,6 @@ describe ('shipout command line', () => {
     });
 
     it ('should deploy the project', () => {
-      process.env['DEPLOY_USER'] = process.env['USER'];
-
       return new Promise((resolve, reject) => {
         CLIAsync([__dirname + '/fixtures/namespacedProject'],
                  global.shipout.privateKey, true)
@@ -30,11 +32,11 @@ describe ('shipout command line', () => {
             expect(fs.existsSync(__dirname + '/fixtures/namespacedProject/package')).toBe(false);
 
             // The directory should exist on the "remote" server
-            expect(fs.existsSync('/tmp/shipout/test')).toBe(true);
+            expect(fs.existsSync('/tmp/shipout/staging')).toBe(true);
             resolve();
           })
           .catch((error) => {
-            expect(error).toBeUndefined();
+            // expect(error).toBeUndefined();
             reject(error);
           });
       });
