@@ -10,7 +10,8 @@ import moment from 'moment';
 export class ConfigStore {
   constructor(projectPath, isTestMode=false) {
     this.projectPath = projectPath;
-    this.configuration = this.getConfiguration();
+
+    // this.configurations = this.getConfigurationForEnvironment();
     this.remoteInstanceDir = moment().format('YYYY-MM-DD_HH:mm:ss');
     this.isVerboseMode = false;
     this.testMode = isTestMode;
@@ -20,31 +21,58 @@ export class ConfigStore {
     return this.testMode;
   }
 
-  getAppEnvironment() {
-    return this.configuration ? this.configuration.app_environment : null;
+  getConfigValueForEnvironment(environment, key) {
+    const config = this.getConfigurationForEnvironment(environment);
+
+    return config ? config[key] : null;
   }
 
-  getDeployUser() {
-      return this.configuration ? this.configuration.deploy_user : null;
+  getUsername() {
+    this._checkAppEnvironmentVariableExists();
+    return this.getUsernameForEnvironment(process.env.APP_ENVIRONMENT);
   }
 
-  getDeployServer() {
-    return this.configuration ? this.configuration.deploy_server : null;
+  getUsernameForEnvironment(environment) {
+    return this.getConfigValueForEnvironment(environment, 'username');
   }
 
-  getDeployPort() {
-    return this.configuration ? this.configuration.deploy_port : null;
+  getHost() {
+    this._checkAppEnvironmentVariableExists();
+    return this.getHostForEnvironment(process.env.APP_ENVIRONMENT);
   }
 
-  getDeployRootDir() {
-    return this.configuration ? this.configuration.deploy_base_dir : null;
+  getHostForEnvironment(environment) {
+    return this.getConfigValueForEnvironment(environment, 'host');
   }
 
-  getRemoteBaseDir() {
-    return this.getDeployRootDir() + "/" + this.getAppEnvironment();
+  getPort() {
+    this._checkAppEnvironmentVariableExists();
+    return this.getPortForEnvironment(process.env.APP_ENVIRONMENT);
   }
 
-  getRemoteInstanceDir() {
+  getPortForEnvironment(environment) {
+    return this.getConfigValueForEnvironment(environment, "port") || 22;
+  }
+
+  getRemoteRootDirectory() {
+    this._checkAppEnvironmentVariableExists();
+    return this.getRemoteRootDirectoryForEnvironment(process.env.APP_ENVIRONMENT);
+  }
+
+  getRemoteRootDirectoryForEnvironment(environment) {
+    return this.getConfigValueForEnvironment(environment, "base_directory");
+  }
+
+  getRemoteBaseDirectory() {
+    this._checkAppEnvironmentVariableExists();
+    return this.getRemoteBaseDirectoryForEnvironment(process.env.APP_ENVIRONMENT);
+  }
+
+  getRemoteBaseDirectoryForEnvironment(environment) {
+    return this.getRemoteRootDirectoryForEnvironment(environment) + "/" + environment;
+  }
+
+  getRemoteInstanceDirectory() {
     return this.remoteInstanceDir;
   }
 
@@ -60,8 +88,14 @@ export class ConfigStore {
     return this._getPackageConfig().name;
   }
 
-  getNumDirectoriesToKeep() {
-    let numDirs = this.getVariableFromPackageJson('keep_releases');
+  getNumReleasesToKeep() {
+    this._checkAppEnvironmentVariableExists();
+    return this.getNumReleasesToKeepForEnvironment(process.env.APP_ENVIRONMENT);
+  }
+
+  getNumReleasesToKeepForEnvironment(environment) {
+    let numDirs = this.getConfigValueForEnvironment(environment, "keep_releases");
+
     return !!(numDirs) ? numDirs : 5;
   }
 
@@ -79,7 +113,7 @@ export class ConfigStore {
     let name = this.getName();
     let splitPath = name.split('/');
     if (splitPath.length > 1) {
-      return splitPath.slice(-1);
+      return splitPath.slice(-1)[0];
     }
 
     return name;
@@ -89,56 +123,58 @@ export class ConfigStore {
     return this.projectPath;
   }
 
-  getConfiguration() {
-    let app_environment = this.getVariableFromPackageJson("app_environment");
-    let deploy_base_dir = this.getVariableFromPackageJson("deploy_base_dir");
-    let deploy_server = this.getVariableFromPackageJson("deploy_server");
-    let deploy_port = this.getVariableFromPackageJson("deploy_port");
-    let deploy_user = this.getVariableFromPackageJson("deploy_user");
+  getDefinedEnvironments() {
+    const shipout_config = this.getPackageJsonTopLevelConfig();
+    return Object.keys(shipout_config);
+  }
+
+  getConfigurationForEnvironment(environment) {
+    this._checkEnvironmentDefined(environment);
+
+    let base_dir = this.getVariableFromEnvironmentInPackageJson(environment, "base_directory");
+    let host = this.getVariableFromEnvironmentInPackageJson(environment, "host");
+    let port = this.getVariableFromEnvironmentInPackageJson(environment, "port");
+    let username = this.getVariableFromEnvironmentInPackageJson(environment, "username");
 
     let retVal =  {
-      "app_environment": app_environment != null ? app_environment
-        : this.getVariableFromEnvironment("APP_ENVIRONMENT"),
-      "deploy_base_dir": deploy_base_dir != null ? deploy_base_dir
-        : this.getVariableFromEnvironment("DEPLOY_BASE_DIR"),
-      "deploy_server": deploy_server != null ? deploy_server
-        : this.getVariableFromEnvironment("DEPLOY_SERVER"),
-      "deploy_port": deploy_port != null ? deploy_port
-        : this.getVariableFromEnvironment("DEPLOY_PORT"),
-      "deploy_user": deploy_user != null ? deploy_user
-        : this.getVariableFromEnvironment("DEPLOY_USER")
+      "base_directory": base_dir,
+      "host": host,
+      "port": port,
+      "username": username || process.env.USER
     };
 
-    if (!retVal.deploy_port) {
-      retVal.deploy_port = "22";
+    if (!retVal.port) {
+      retVal.port = "22";
     }
 
-    let requiredVars = [ "app_environment", "deploy_base_dir", "deploy_server",
-                         "deploy_user" ];
+    let requiredVars = [ "base_directory", "host", "username" ];
 
     for (let requiredVarsIdx in requiredVars) {
       if (!retVal[requiredVars[requiredVarsIdx]]
           || retVal[requiredVars[requiredVarsIdx]] == null) {
-        throw "Neither a package.json configuration nor an environment "
-              + `variable was specified for ${requiredVars[requiredVarsIdx]}`;
+        throw `A package.json configuration was not specified for ${requiredVars[requiredVarsIdx]} in environment "${environment}"`;
       }
     }
 
     return retVal;
   }
 
-  getVariableFromPackageJson(varName) {
+  getPackageJsonTopLevelConfig() {
     const pkg = this._getPackageConfig();
 
-    if (!pkg.shipout) {
-      return null;
-    }
-
-    return pkg.shipout[varName];
+    return !!pkg.shipout && pkg.shipout;
   }
 
-  getVariableFromEnvironment(varName) {
-    return process.env[varName];
+  getEnvironmentFromPackageJson(environment) {
+    const topLevel = this.getPackageJsonTopLevelConfig();
+
+    return !!topLevel && topLevel[environment];
+  }
+
+  getVariableFromEnvironmentInPackageJson(environment, varName) {
+    const envConfig = this.getEnvironmentFromPackageJson(environment);
+
+    return !!envConfig && envConfig[varName];
   }
 
   _getPackageConfig() {
@@ -149,5 +185,17 @@ export class ConfigStore {
     }
 
     return this._packageConfig;
+  }
+
+  _checkEnvironmentDefined(environment) {
+    if (!this.getDefinedEnvironments().includes(environment)) {
+      throw new Error(`Environment "${environment}" is not defined`);
+    }
+  }
+
+  _checkAppEnvironmentVariableExists() {
+    if (!process.env.APP_ENVIRONMENT) {
+      throw new Error(`APP_ENVIRONMENT environment variable not defined`);
+    }
   }
 }

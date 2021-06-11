@@ -36,28 +36,55 @@ yarn add -D @foamfactory/shipout
   ```
 
 ## Configuration
-There are four main configuration variables that are required for `shipout` to
-work: app environment, server hostname/ip address, server username, and remote
-base directory. You can specify them as either an environment variable or as an
-configuration in `package.json`. Each of these is described below.
-
-To specify configuration values in `package.json`, create a `shipout` section in
-your `package.json` file with the values you wish to specify:
+Configuration for `shipout` is performed within the `package.json` file. The
+basic configuration within `package.json` is the `shipout` object:
 ```
-  ...
-  "shipout": {
-    # Key/value pairs go here
-  },
-  ...
+"shipout": {
+  "environment_name": {
+    # key-value pairs go here
+  }
+},
+... rest of package.json ...
 ```
 
-| Name                 | Package.json Key Name  | Environment Variable Name | Description |
-| -------------------- | ---------------------- | ------------------------- | ----------- |
-| App Environment      | `app_environment`      | `APP_ENVIRONMENT`         | The environment which is being deployed. This is used if you want, for example, a `staging` and `production` version of the app on the same server. It should be a string. If in doubt, use `"production"`. |
-| Deploy Username      | `deploy_user`          | `DEPLOY_USER`             | The username of the user to login with to the remote host. Defaults to the username of the current user logged in to the local system. |
-| Deploy Host          | `deploy_server`        | `DEPLOY_SERVER`           | The hostname (or IP address) of the remote host to deploy to. No default. |
-| Base Directory       | `deploy_base_dir`      | `DEPLOY_BASE_DIR`         | The base directory, as an absolute path, that contains the releases on the remote host. No default. |
-| Old Releases to Keep | `keep_releases`        | N/A                       | The number of old releases to keep on the remote host. Defaults to `5` if not specified. Set to `-1` to disable cleanup of old releases. |
+Within the top-level `shipout` configuration, several configuration variables
+are expected to be defined: server username, server hostname/ip address, an
+optional port), remote base directory, and (optionally) the number of old
+releases to keep. Each of these must be configured per-environment.
+
+### Example Configuration
+```
+"shipout": {
+  "production": {
+    "host": "anywhere.example.com",
+    "port": 9006,
+    "username": "deployer_bot",
+    "base_directory": "/var/www/",
+    "keep_releases": 5
+  }
+}
+```
+
+### `host`
+The hostname (or IP address) of the remote host to deploy to. Does not have a
+default and must be specified.
+
+### `port`
+The port to connect to on the remote host. If not specified, will default to
+`22`.
+
+### `username`
+The username of the user to login with on the remote host. Defaults to the
+username of the current user logged in to the local system.
+
+### `base_directory`
+The base directory, as an absolute path, that contains the releases on the
+remote host. Does not have a default and must be specified.
+
+### `keep_releases`
+The number of old releases to keep on the remote host. If set to `-1`, all
+cleanup of old releases will be disabled and all releases will be kept
+indefinitely. Defaults to `5` if not specified.
 
 ## Running Tests
 In order to run tests, you will need to install [Docker](http://www.docker.com) on your system. We don't use Docker to run tests, other than for testing SSH capabilities, so if you don't have Docker installed, you should still be able to run most of the tests.

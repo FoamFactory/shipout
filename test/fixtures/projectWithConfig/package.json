@@ -9,10 +9,11 @@
   "author": "",
   "license": "ISC",
   "shipout": {
-    "deploy_user": "someuser",
-    "deploy_server": "server.somewhere.net",
-    "deploy_port": "3791",
-    "deploy_base_dir": "/some/path",
-    "app_environment": "staging"
+    "staging": {
+      "username": "someuser",
+      "host": "server.somewhere.net",
+      "port": "3791",
+      "base_directory": "/some/path"
+    }
   }
 }

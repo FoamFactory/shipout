@@ -59,11 +59,11 @@ export function CLIAsync(args, privateKey, isTestMode=false) {
   let packedFilePath;
   let packedFileName;
 
-  let remoteWorker = new RemoteWorker(configStore.getDeployUser(),
-                                      configStore.getDeployServer(),
-                                      configStore.getDeployPort(),
-                                      configStore.getRemoteBaseDir(),
-                                      configStore.getRemoteInstanceDir(),
+  let remoteWorker = new RemoteWorker(configStore.getUsername(),
+                                      configStore.getHost(),
+                                      configStore.getPort(),
+                                      configStore.getRemoteBaseDirectory(),
+                                      configStore.getRemoteInstanceDirectory(),
                                       privateKey ? privateKey : null);
 
 
