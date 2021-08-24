@@ -12,6 +12,9 @@ export function isVerboseMode() {
   return _.indexOf(process.argv, "--verbose") !== -1;
 }
 
+// XXX_jwir3: Do not use localhost in place of 127.0.0.1! Sometimes, host
+//            resolution resolves localhost to ::1 (IPv6) instead of 127.0.0.1,
+//            which doesn't appear to work with test-sshd.
 export function connectAndRunCommand(connectionParams, command) {
   return new Promise((resolve, reject) => {
     let response = '';
@@ -53,7 +56,7 @@ export function connectAndRunCommand(connectionParams, command) {
 function setupSSHServer(options) {
   return new Promise((resolve, reject) => {
     if (isVerboseMode()) {
-      console.log("Setting up SSH server running on localhost:4000");
+      console.log("Setting up SSH server running on 127.0.0.1:4000");
     }
 
     if (!global.shipout) {
@@ -71,6 +74,9 @@ function setupSSHServer(options) {
       expect(global.shipout.ssh_server).toBeDefined();
       expect(global.shipout.ssh_server.status).toBe('started');
 
+      if (isVerboseMode()) {
+        console.log("Resolving promise for setupSSHServer()");
+      }
       resolve();
     });
 
@@ -115,7 +121,7 @@ function tearDownSSHServer() {
 }
 
 export function withSSHMimicServer() {
-  return this.extend('with an SSH server running on localhost:4000 that mimicks the input command', {
+  return this.extend('with an SSH server running on 127.0.0.1:4000 that mimicks the input command', {
     beforeAll: function() {
       return setupSSHServer({port: 4000});
     },
@@ -127,7 +133,7 @@ export function withSSHMimicServer() {
 }
 
 export function withSFTPServer() {
-  return this.extend('with an SFTP server running on localhost:4001', {
+  return this.extend('with an SFTP server running on 127.0.0.1:4001', {
     beforeAll: function() {
       return setupSSHServer({ port: 4001, mode: 'transfer'});
     },
@@ -139,7 +145,7 @@ export function withSFTPServer() {
 }
 
 export function withFullSSHServer() {
-  return this.extend('with an SSH server running on localhost:4002', {
+  return this.extend('with an SSH server running on 127.0.0.1:4002', {
     beforeAll: function() {
       return setupSSHServer({port: 4002, mode: 'exec'});
     },

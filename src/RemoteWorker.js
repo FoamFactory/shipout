@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs, { access, constants } from 'fs';
 import path from 'path';
 import process from 'process';
 import NodeSSH from 'node-ssh';

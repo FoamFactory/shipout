@@ -12,7 +12,7 @@ describe ('Server Helper', () => {
     it ('should allow connections', () => {
       return new Promise((resolve, reject) => {
         let connectionParams = {
-          host: 'localhost',
+          host: '127.0.0.1',
           port: '4000',
           username: process.env.USER,
           privateKey: global.shipout.privateKey

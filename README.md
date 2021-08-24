@@ -87,4 +87,12 @@ cleanup of old releases will be disabled and all releases will be kept
 indefinitely. Defaults to `5` if not specified.
 
 ## Running Tests
-In order to run tests, you will need to install [Docker](http://www.docker.com) on your system. We don't use Docker to run tests, other than for testing SSH capabilities, so if you don't have Docker installed, you should still be able to run most of the tests.
+### Prerequisites
+You will need the following installed prior to running tests:
+  - [Docker](https://docs.docker.com/engine/install/ubuntu/)
+  - openssh-server
+
+To install the prerequisites with `apt`, use the following command:
+```
+sudo apt install openssh-server
+```

@@ -103,7 +103,7 @@ describe ('RemoteWorker', () => {
         let filePacker = setupFilePacker();
 
         return new Promise((resolve, reject) => {
-          let remoteWorker = new RemoteWorker(process.env.USER, 'localhost',
+          let remoteWorker = new RemoteWorker(process.env.USER, '127.0.0.1',
                                               '4001', baseDir, instanceDir,
                                               global.shipout.privateKey);
           expect(remoteWorker.getSSHConfiguration().privateKey).toBeDefined();
@@ -147,7 +147,7 @@ describe ('RemoteWorker', () => {
       it ('should respond with a mkdir command', () => {
         return new Promise((resolve, reject) => {
           let remoteWorker
-            = new RemoteWorker(process.env.USER, 'localhost',
+            = new RemoteWorker(process.env.USER, '127.0.0.1',
                                '4000', baseDir, instanceDir,
                                global.shipout.privateKey);
 
@@ -170,7 +170,7 @@ describe ('RemoteWorker', () => {
       it ('should respond with an ln command', () => {
         return new Promise((resolve, reject) => {
           let remoteWorker
-            = new RemoteWorker(process.env.USER, 'localhost',
+            = new RemoteWorker(process.env.USER, '127.0.0.1',
                                '4000', baseDir, instanceDir,
                                global.shipout.privateKey);
 
@@ -196,7 +196,7 @@ describe ('RemoteWorker', () => {
           let expectedCommand = `cd ${baseDir}/${instanceDir} && tar xzvf ${filePacker.getPackedFileName()}`;
 
           let remoteWorker
-            = new RemoteWorker(process.env.USER, 'localhost',
+            = new RemoteWorker(process.env.USER, '127.0.0.1',
                                '4000', baseDir, instanceDir,
                                global.shipout.privateKey);
 
@@ -224,7 +224,7 @@ describe ('RemoteWorker', () => {
       it ('should throw an error', () => {
         return new Promise((resolve, reject) => {
           let remoteWorker
-            = new RemoteWorker(process.env.USER, 'localhost',
+            = new RemoteWorker(process.env.USER, '127.0.0.1',
                                '4000', baseDir, instanceDir);
 
 
@@ -243,7 +243,7 @@ describe ('RemoteWorker', () => {
     describe ('createCurrentLink()', () => {
       it ('should throw an error', () => {
         return new Promise((resolve, reject) => {
-          let remoteWorker = new RemoteWorker(process.env.USER, 'localhost',
+          let remoteWorker = new RemoteWorker(process.env.USER, '127.0.0.1',
                                               '4000', baseDir, instanceDir);
           remoteWorker.createCurrentLink()
             .then((result) => {

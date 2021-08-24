@@ -11,7 +11,7 @@
   "license": "UNLICENSED",
   "shipout": {
     "staging": {
-      "host": "localhost",
+      "host": "127.0.0.1",
       "port": "4002",
       "base_directory": "/tmp/shipout"
     }
