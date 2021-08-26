@@ -17,67 +17,83 @@ import { CopyPackageToServerStage,
          RemoteCleanupStage,
          UnpackStage } from '~/src/RemoteWorkStage';
 
-let logger = new Logger({
-  showTimestamp: false,
-  info: "gray",
-  error: "red",
-  warn: "yellow",
-  debug: "green",
-  prefix: '[' + `Main Process`.green + ']'
-});
+let logger;
 
 export function CLI(args) {
-  logger.info(`Shipout v${packageJson.version} initialized`);
-
   CLIAsync(args, null, false)
-    .then(() => {
+    .then((logger) => {
       logger.info("Shipout Complete");
     })
-    .catch((error) => {
-      console.error("Unable to deploy files due to: ");
-      console.error(error.message);
-      console.error(error);
+    .catch((error, logger) => {
+      logger.error(`Unable to deploy files to remote host because of error: ${error.message}`);
       process.exit(1);
     });
 }
 
 export function CLIAsync(args, privateKey, isTestMode=false) {
-  // args is pruned to eliminate node and the name of the called executable,
-  // assuming you invoked it with bin/shipout.js
-  let workingDir;
+  return new Promise((resolve, reject) => {
 
-  if (args.length > 0) {
-      workingDir = args[0];
-  } else {
-    workingDir = process.cwd();
-  }
+    // args is pruned to eliminate node and the name of the called executable,
+    // assuming you invoked it with bin/shipout.js
+    let workingDir;
 
-  let configStore = new ConfigStore(path.resolve(workingDir), isTestMode);
+    if (args.length > 0) {
+        workingDir = args[0];
+    } else {
+      workingDir = process.cwd();
+    }
 
-  let filePacker = new FilePacker(configStore);
+    // Initialize logger and config store
+    let logger = new Logger({
+      showTimestamp: false,
+      info: "gray",
+      error: "red",
+      warn: "yellow",
+      debug: "green",
+      prefix: '[' + `Main Process`.green + ']'
+    });
 
-  let packedFilePath;
-  let packedFileName;
+    let configStore = new ConfigStore(path.resolve(workingDir), logger,
+                                      isTestMode);
 
-  let remoteWorker = new RemoteWorker(configStore.getUsername(),
-                                      configStore.getHost(),
-                                      configStore.getPort(),
-                                      configStore.getRemoteBaseDirectory(),
-                                      configStore.getRemoteInstanceDirectory(),
-                                      privateKey ? privateKey : null);
+    if (isTestMode) {
+      Logger.setLevel('warning', true);
+    } else if (configStore.getIsVerboseMode()) {
+      Logger.setLevel('debug');
+    } else {
+      Logger.setLevel('info', true);
+    }
+
+    logger.info(`Shipout v${packageJson.version} initialized`);
+
+    let filePacker = new FilePacker(configStore);
+
+    let packedFilePath;
+    let packedFileName;
+
+    let remoteWorker = RemoteWorker.create(configStore,
+                                           privateKey ? privateKey : null);
 
 
-  let options = {
-    'parentWorker': remoteWorker,
-    'configStore': configStore
-  };
+    let options = {
+      'parentWorker': remoteWorker,
+      'configStore': configStore,
+      'logger': logger
+    };
 
-  remoteWorker.setStages([new PackageRemoteWorkStage(options),
-                          new MakeDirectoryStage(options),
-                          new CreateCurrentLinkStage(options),
-                          new CopyPackageToServerStage(options),
-                          new UnpackStage(options),
-                          new RemoteCleanupStage(options),
-                          new LocalCleanupStage(options)]);
-  return remoteWorker.run();
+    remoteWorker.setStages([new PackageRemoteWorkStage(options),
+                            new MakeDirectoryStage(options),
+                            new CreateCurrentLinkStage(options),
+                            new CopyPackageToServerStage(options),
+                            new UnpackStage(options),
+                            new RemoteCleanupStage(options),
+                            new LocalCleanupStage(options)]);
+    return remoteWorker.run()
+      .then(() => {
+        resolve(logger);
+      })
+      .catch((error) => {
+        reject(error, logger);
+      });
+  });
 }

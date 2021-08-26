@@ -16,10 +16,6 @@ import { FilePacker } from '~/src/FilePacker';
 import RemoteWorker from '~/src/RemoteWorker';
 
 function setupFilePacker() {
-  let configStore = new ConfigStore(path.join(process.cwd(), 'test',
-                                    'fixtures', 'projectWithSomeFiles'));
-  expect(configStore).toBeDefined();
-
   let filePacker = new FilePacker(configStore);
   expect(filePacker).toBeDefined();
 
@@ -33,41 +29,51 @@ function setupFilePacker() {
   return filePacker;
 }
 
-describe ('RemoteWorker', () => {
-  describe('after setting up the remote worker', () => {
-    it ('should have X stages by default', () => {
+let configStore, filePacker;
 
-    });
+describe ('RemoteWorker', () => {
+  beforeEach(() => {
+    configStore = new ConfigStore(path.join(process.cwd(), 'test',
+                                  'fixtures', 'projectWithSomeFiles'));
+    expect(configStore).toBeDefined();
+
+    filePacker = setupFilePacker();
   });
 
   describe ('#getSSHConfiguration()', () => {
-    describe ('when the SSH_AUTH_SOCK environment variable is set', () => {
+    describe ('when using the staging environment', () => {
       beforeEach(() => {
-        process.env.SSH_AUTH_SOCK = 'socket-path';
+        process.env.APP_ENVIRONMENT = 'staging';
       });
 
-      it ('should return an SSH configuration using the SSH_AUTH_SOCK', () => {
-        let manager = new RemoteWorker('blah', 'somehost.somewhere.net');
-        let config = manager.getSSHConfiguration();
+      describe ('when the SSH_AUTH_SOCK environment variable is set', () => {
+        beforeEach(() => {
+          process.env.SSH_AUTH_SOCK = 'socket-path';
+        });
 
-        expect(config.agent).toBe('socket-path');
-        expect(config.username).toBe('blah');
-        expect(config.host).toBe('somehost.somewhere.net');
+        it ('should return an SSH configuration using the SSH_AUTH_SOCK', () => {
+          let manager = RemoteWorker.create(configStore);
+          let config = manager.getSSHConfiguration();
+
+          expect(config.agent).toBe('socket-path');
+          expect(config.username).toBe('someuser');
+          expect(config.host).toBe('server.somewhere.net');
+        });
       });
-    });
 
-    describe('when the SSH_AUTH_SOCK environment variable is not set', () => {
-      beforeEach(() => {
-        delete process.env.SSH_AUTH_SOCK;
-      });
+      describe('when the SSH_AUTH_SOCK environment variable is not set', () => {
+        beforeEach(() => {
+          delete process.env.SSH_AUTH_SOCK;
+        });
 
-      it ('should return an SSH configuration that does not use the SSH_AUTH_SOCK', () => {
-        let manager = new RemoteWorker('blah', 'somehost.somewhere.net');
-        let config = manager.getSSHConfiguration();
+        it ('should return an SSH configuration that does not use the SSH_AUTH_SOCK', () => {
+          let manager = RemoteWorker.create(configStore);
+          let config = manager.getSSHConfiguration();
 
-        expect(config.agent).toBe(false);
-        expect(config.username).toBe('blah');
-        expect(config.host).toBe('somehost.somewhere.net');
+          expect(config.agent).toBe(false);
+          expect(config.username).toBe('someuser');
+          expect(config.host).toBe('server.somewhere.net');
+        });
       });
     });
   });

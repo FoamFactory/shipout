@@ -10,9 +10,10 @@
   "author": "",
   "license": "ISC",
   "shipout": {
-    "deploy_user": "someuser",
-    "deploy_server": "server.somewhere.net",
-    "deploy_base_dir": "/some/path",
-    "app_environment": "staging"
+    "staging": {
+      "host": "server.somewhere.net",
+      "username": "someuser",
+      "base_directory": "/some/path"
+    }
   }
 }

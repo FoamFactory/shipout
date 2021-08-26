@@ -2,12 +2,21 @@ import fs, { access, constants } from 'fs';
 import path from 'path';
 import process from 'process';
 import NodeSSH from 'node-ssh';
+import { Client } from 'node-scp'
 
 /**
  *  An object that allows the quick and easy execution of commands as a given
  *  user on a specific host using SSH.
  */
 export default class RemoteWorker {
+
+  static create(configStore, privateKey) {
+    return new RemoteWorker(configStore.getUsername(), configStore.getHost(),
+                            configStore.getPort(),
+                            configStore.getRemoteBaseDirectory(),
+                            configStore.getRemoteInstanceDirectory(),
+                            privateKey, configStore.getLogger());
+  }
 
   /**
    *  Create a new instance of RemoteWorker.
@@ -26,15 +35,18 @@ export default class RemoteWorker {
    *         SSH_AUTH_SOCK will be used to send the key via the SSH agent or
    *         that the default ssh private key will be used (typically
    *         ~/.ssh/id_rsa).
+   *  @param {Logger} logger The logger to use to print to standard output.
+   *         Defaults to `null`.
    */
-  constructor(user, host, port, remoteBaseDir, remoteInstanceDir, privateKey) {
+  constructor(user, host, port, baseDir, instanceDir, privateKey, logger) {
     this.user = user;
     this.host = host;
     this.port = port;
-    this.remoteBaseDir = remoteBaseDir;
-    this.remoteInstanceDir = remoteInstanceDir;
+    this.remoteBaseDir = baseDir;
+    this.remoteInstanceDir = instanceDir;
     this.privateKey = privateKey;
     this.stages = [];
+    this.logger = logger;
   }
 
   setStages(stages) {
@@ -275,24 +287,45 @@ export default class RemoteWorker {
           resolve();
         });
       } else {
-        let ssh = new NodeSSH();
-
-        ssh.connect(sshConfig)
-          .then(() => {
-            return ssh.putFile(localPath, remotePath);
-          })
-          .then((data) => {
-            if (data) {
-              result = data.stdout;
-            }
-            return ssh.dispose();
-          })
-          .then(() => {
-            resolve(result);
-          })
-          .catch((error) => {
-            reject(error);
-          });
+        return Client(this.getSSHConfiguration()).then(client => {
+          this.logger.debug(`Connected to SSH server. Attempting file transfer from ${localPath} to ${sshConfig.host}:${remotePath}`);
+          client.uploadFile(localPath, remotePath)
+            .then((response) => {
+              client.close();
+              resolve();
+            })
+            .catch((error) => {
+              this.logger.error("Unable to copy file to ssh server due to: ", error);
+              reject(error);
+            })
+        }).catch((e) => {
+          this.logger.error(`Unable to connect to ssh host "${sshConfig.host}: `, e);
+          reject(e);
+        });
+        // let ssh = new NodeSSH();
+        //
+        // this.logger.debug('NodeSSH object: ', ssh);
+        //
+        // ssh.connect(sshConfig)
+        //   .then(() => {
+        //     this.logger.debug('Connected to ssh server. Attempting file copy.');
+        //     return ssh.putFile(localPath, remotePath);
+        //   })
+        //   .then((data) => {
+        //     if (data) {
+        //       result = data.stdout;
+        //     }
+        //
+        //     this.logger.debug('Data received from ssh server: ', data);
+        //     return ssh.dispose();
+        //   })
+        //   .then(() => {
+        //     resolve(result);
+        //   })
+        //   .catch((error) => {
+        //     this.logger.error('Error received from SSH server: ', error);
+        //     reject(error);
+        //   });
       }
     });
   }

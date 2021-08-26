@@ -8,23 +8,27 @@ import moment from 'moment';
  *  environment variables.
  */
 export class ConfigStore {
-  constructor(projectPath, isTestMode=false) {
+  constructor(projectPath, logger, isTestMode=false) {
     this.projectPath = projectPath;
 
     // this.configurations = this.getConfigurationForEnvironment();
     this.remoteInstanceDir = moment().format('YYYY-MM-DD_HH:mm:ss');
-    this.isVerboseMode = false;
     this.testMode = isTestMode;
+    this.logger = logger;
   }
 
   isTestMode() {
     return this.testMode;
   }
 
-  getConfigValueForEnvironment(environment, key) {
+  getLogger() {
+    return this.logger;
+  }
+
+  getConfigValueForEnvironment(environment, key, defaultVal=null) {
     const config = this.getConfigurationForEnvironment(environment);
 
-    return config ? config[key] : null;
+    return config ? config[key] : defaultVal;
   }
 
   getUsername() {
@@ -32,8 +36,18 @@ export class ConfigStore {
     return this.getUsernameForEnvironment(process.env.APP_ENVIRONMENT);
   }
 
+  getIsVerboseMode() {
+    this._checkAppEnvironmentVariableExists();
+    return this.getIsVerboseModeForEnvironment(process.env.APP_ENVIRONMENT);
+  }
+
   getUsernameForEnvironment(environment) {
-    return this.getConfigValueForEnvironment(environment, 'username');
+    return this.getConfigValueForEnvironment(environment, 'username',
+                                             process.env.USER);
+  }
+
+  getIsVerboseModeForEnvironment(environment) {
+    return this.getConfigValueForEnvironment(environment, 'verbose');
   }
 
   getHost() {
@@ -135,12 +149,14 @@ export class ConfigStore {
     let host = this.getVariableFromEnvironmentInPackageJson(environment, "host");
     let port = this.getVariableFromEnvironmentInPackageJson(environment, "port");
     let username = this.getVariableFromEnvironmentInPackageJson(environment, "username");
+    let verboseMode = this.getVariableFromEnvironmentInPackageJson(environment, "verbose");
 
     let retVal =  {
       "base_directory": base_dir,
       "host": host,
       "port": port,
-      "username": username || process.env.USER
+      "username": username || process.env.USER,
+      "verbose": !!verboseMode
     };
 
     if (!retVal.port) {

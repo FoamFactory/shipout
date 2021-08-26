@@ -14,17 +14,17 @@ class RemoteWorkStage {
     this.name = options.name;
     this.parentWorker = options.parentWorker;
     this.configStore = options.configStore;
-    this.isVerbose = !!options.isVerbose;
+    this.logger = options.logger;
 
-    this.logger = new Logger({
-      showMillis: true,
-      showTimestamp: false,
-      info: "gray",
-      error: "red",
-      warn: "yellow",
-      debug: "green",
-      prefix: '[' + `STAGE: ${this.name}`.blue + ']'
-    });
+    // this.logger = new Logger({
+    //   showMillis: true,
+    //   showTimestamp: false,
+    //   info: "gray",
+    //   error: "red",
+    //   warn: "yellow",
+    //   debug: "green",
+    //   prefix: '[' + `STAGE: ${this.name}`.blue + ']'
+    // });
   }
 
   getName() {
@@ -59,6 +59,8 @@ class RemoteWorkStage {
   }
 
   reportError(error) {
+    console.trace(error);
+    
     if (error.message) {
       this.logger.error(error.message);
     } else {
@@ -192,6 +194,8 @@ export class CopyPackageToServerStage extends RemoteWorkStage {
     let packedFileName = data.fileName;
     let packedFilePath = data.path;
     let deployServer = self.getConfigStore().getHost();
+
+    self.getLogger().debug('Verbose mode is turned on');
 
     if (!self.getConfigStore().isTestMode()) {
       self.getLogger().info(`Copying package/${packedFileName} to ${deployServer}`);
