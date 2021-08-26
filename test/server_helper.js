@@ -3,7 +3,7 @@ import wrap from 'jest-wrap';
 import _ from 'lodash';
 import process from 'process';
 import Client from 'ssh2';
-import TestSshd from 'test-sshd';
+import { TestSSHD } from 'test-sshdng';
 
 wrap.register(withSSHMimicServer);
 wrap.register(withSFTPServer);
@@ -63,7 +63,7 @@ function setupSSHServer(options) {
       global.shipout = {};
     }
 
-    global.shipout.ssh_server = new TestSshd(options);
+    global.shipout.ssh_server = new TestSSHD(options);
     expect(global.shipout.ssh_server).toBeDefined();
 
     let connectParams = global.shipout.ssh_server.connectParams();

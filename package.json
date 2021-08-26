@@ -1,6 +1,6 @@
 {
   "name": "@foamfactory/shipout",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A lightweight tool for deploying node applications from within a source repository",
   "main": "dist/index.js",
   "files": [
@@ -38,7 +38,6 @@
   "shipout": {
     "keep_releases": -1
   },
-
   "license": "MPL-2.0",
   "devDependencies": {
     "@babel/cli": "^7.10.1",
@@ -50,7 +49,7 @@
     "jest-serial-runner": "^1.1.0",
     "jest-wrap": "^1.7.0",
     "lodash": "^4.17.21",
-    "test-sshd": "^0.0.6"
+    "test-sshdng": "^0.0.2"
   },
   "dependencies": {
     "babel-jest": "^26.0.1",
