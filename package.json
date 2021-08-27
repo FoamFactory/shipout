@@ -1,6 +1,6 @@
 {
   "name": "@foamfactory/shipout",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "A lightweight tool for deploying node applications from within a source repository",
   "main": "dist/index.js",
   "files": [
@@ -50,6 +50,7 @@
     "jest-serial-runner": "^1.1.0",
     "jest-wrap": "^1.7.0",
     "lodash": "^4.17.21",
+    "tar": "^6.1.11",
     "test-sshdng": "^0.0.2"
   },
   "dependencies": {
@@ -60,7 +61,6 @@
     "node-ssh": "^10.0.2",
     "pretty-logger": "^0.1.2",
     "rimraf": "^3.0.2",
-    "ssh2": "^0.8.9",
-    "tar-pack": "^3.4.1"
+    "ssh2": "^0.8.9"
   }
 }

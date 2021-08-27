@@ -3,7 +3,7 @@ import mkdirp from 'mkdirp';
 import * as path from 'path';
 import * as process from 'process';
 import rimraf from 'rimraf';
-import { pack } from 'tar-pack';
+import tar from 'tar';
 
 const PACKAGE_DIR_NAME = 'package';
 
@@ -86,39 +86,33 @@ export class FilePacker {
       mkdirp(self.getPackedFilePath())
         .then(() => {
           let write = fs.createWriteStream;
-          pack(self.getConfigStore().getProjectBaseDirectory(), {
-            "fromBase": true,
-            "ignoreFiles": [],
-            "filter": (entry) => {
-              if (self.getConfigStore().getProjectBaseDirectory() === entry.path) {
-                // Include the base directory a duh
-                return true;
-              }
-
-              if (filesToPack.includes(entry.path)) {
-                return true;
-              }
-
-              for (let idx in filesToPack) {
-                if (entry.path.startsWith(filesToPack[idx])) {
+          tar.c({
+              gzip: true,
+              file: path.join(self.getPackedFilePath(), self.getPackedFileName()),
+              filter: (entry) => {
+                if (self.getConfigStore().getProjectBaseDirectory() === entry) {
+                  // Include the base directory a duh
                   return true;
                 }
-              }
 
-              return false;
-            }
-          })
-            .pipe(write(path.join(self.getPackedFilePath(),
-                                  self.getPackedFileName())))
-            .on('error', (error) => {
-              reject(error);
-            })
-            .on('close', () => {
-              let packedPath = self.getPackedFilePath();
-              let packedFileName = self.getPackedFileName();
+                if (filesToPack.includes(entry)) {
+                  return true;
+                }
+
+                for (let idx in filesToPack) {
+                  if (entry.startsWith(filesToPack[idx])) {
+                    return true;
+                  }
+                }
+
+                return false;
+              }
+            },
+            filesToPack)
+            .then(out => {
               resolve({
-                path: packedPath,
-                fileName: packedFileName
+                path: self.getPackedFilePath(),
+                fileName: self.getPackedFileName()
               });
             });
         });
