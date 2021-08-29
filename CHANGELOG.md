@@ -1,5 +1,17 @@
 # Changelog
 
+<a name="0.1.5"></a>
+## 0.1.5 (2021-08-29)
+
+### Dependency Changes
+
+- ➖ Remove gitmoji-changelog from dev dependencies. [[f2d464b](https://github.com/foamfactory/shipout/commit/f2d464b1ff1ab0460ea7b9b91c3cc8a1a6d8e787)]
+
+### Testing and Deployments
+
+- 🚀 Redeploy under organization name &#x27;foamfactoryio&#x27;. [[6fd880e](https://github.com/foamfactory/shipout/commit/6fd880e5ae4bc60c23c2604dde1213e747a45128)]
+
+
 <a name="0.1.4"></a>
 ## 0.1.4 (2021-08-27)
 
