@@ -88,7 +88,7 @@ describe('ConfigStore', () => {
       expect(configStore.getRemoteRootDirectoryForEnvironment('staging')).toBe('/tmp/shipout');
       expect(configStore.getHostForEnvironment('staging')).toBe('127.0.0.1');
       expect(configStore.getPortForEnvironment('staging')).toBe('4002');
-      expect(configStore.getProjectBaseDirectory()).toBe(Path.join(__dirname, 'fixtures', 'namespacedProject'));
+      expect(configStore.getProjectBaseDirectory()).toBe(Path.join('test', 'fixtures', 'namespacedProject'));
 
       expect(configStore.getName()).toBe('@loonslanding/namespaced-project');
       expect(configStore.getVersion()).toBe('1.0.0');

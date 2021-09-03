@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as process from 'process';
 import moment from 'moment';
+import Logger from 'pretty-logger';
 
 /**
  *  A configuration store based off of either a client's `package.json` or
@@ -22,7 +23,16 @@ export class ConfigStore {
   }
 
   getLogger() {
-    return this.logger;
+    return this.logger || new Logger(
+      {
+        showTimestamp: false,
+        info: "gray",
+        error: "red",
+        warn: "yellow",
+        debug: "green",
+        prefix: '[' + `Config Store`.green + ']'
+      }
+    );
   }
 
   getConfigValueForEnvironment(environment, key, defaultVal=null) {
@@ -134,7 +144,11 @@ export class ConfigStore {
   }
 
   getProjectBaseDirectory() {
-    return this.projectPath;
+    return path.relative(path.join(__dirname, '..'), this.projectPath);
+  }
+
+  getAbsoluteProjectBaseDirectory() {
+    return path.resolve(this.getProjectBaseDirectory());
   }
 
   getDefinedEnvironments() {

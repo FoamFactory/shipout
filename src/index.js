@@ -24,7 +24,9 @@ export function CLI(args) {
     .then((logger) => {
       logger.info("Shipout Complete");
     })
-    .catch((error, logger) => {
+    .catch((errorObj) => {
+      const error = errorObj.error;
+      const logger = errorObj.logger;
       logger.error(`Unable to deploy files to remote host because of error: ${error.message}`);
       process.exit(1);
     });
@@ -93,7 +95,7 @@ export function CLIAsync(args, privateKey, isTestMode=false) {
         resolve(logger);
       })
       .catch((error) => {
-        reject(error, logger);
+        reject({error, logger});
       });
   });
 }

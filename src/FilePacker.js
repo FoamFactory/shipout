@@ -33,9 +33,9 @@ export class FilePacker {
     }
 
     for (let fileIdx in filesToPack) {
-      filesToPack[fileIdx] =
-        path.resolve(this.getConfigStore().getProjectBaseDirectory(),
-                     filesToPack[fileIdx]);
+      if (filesToPack[fileIdx] !== this.getConfigStore().getProjectBaseDirectory()) {
+        filesToPack[fileIdx] = path.join(this.getConfigStore().getProjectBaseDirectory(), filesToPack[fileIdx]);
+      }
     }
 
     return filesToPack;
@@ -58,8 +58,11 @@ export class FilePacker {
                                       .join(path.sep));
     }
 
-    return path.join(this.getConfigStore().getProjectBaseDirectory(),
+    const packedFilePath
+      = path.resolve(this.getConfigStore().getAbsoluteProjectBaseDirectory(),
                      packageDir);
+
+    return packedFilePath;
   }
 
   getRootPackageDirectory() {
@@ -86,21 +89,25 @@ export class FilePacker {
       mkdirp(self.getPackedFilePath())
         .then(() => {
           let write = fs.createWriteStream;
+          let dirsGettingPacked = [];
           tar.c({
               gzip: true,
               file: path.join(self.getPackedFilePath(), self.getPackedFileName()),
               filter: (entry) => {
                 if (self.getConfigStore().getProjectBaseDirectory() === entry) {
                   // Include the base directory a duh
+                  dirsGettingPacked.push(entry);
                   return true;
                 }
 
                 if (filesToPack.includes(entry)) {
+                  dirsGettingPacked.push(entry);
                   return true;
                 }
 
                 for (let idx in filesToPack) {
                   if (entry.startsWith(filesToPack[idx])) {
+                    dirsGettingPacked.push(entry);
                     return true;
                   }
                 }
@@ -110,6 +117,9 @@ export class FilePacker {
             },
             filesToPack)
             .then(out => {
+              this.configStore.getLogger().debug('Packed file paths: ',
+                                                 dirsGettingPacked);
+
               resolve({
                 path: self.getPackedFilePath(),
                 fileName: self.getPackedFileName()

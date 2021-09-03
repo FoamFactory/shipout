@@ -20,8 +20,8 @@ function setupFilePacker() {
   expect(filePacker).toBeDefined();
 
   let packagePath = filePacker.getPackedFilePath();
-  expect(packagePath).toMatch(path.join(process.cwd(), 'test',
-                              'fixtures', 'projectWithSomeFiles', 'package'));
+  expect(packagePath).toMatch(path.join('test', 'fixtures',
+                                        'projectWithSomeFiles', 'package'));
 
   let packageName = filePacker.getPackedFileName();
   expect(packageName).toMatch('projectwithsomefiles-v1.0.0.tgz');

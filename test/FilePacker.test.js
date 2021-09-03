@@ -34,7 +34,7 @@ describe ('FilePacker', () => {
 
     describe ('#getFilesToPack()', () => {
       it ('should include README.md, package.json, and the build subdirectory', () => {
-        let basePath = path.resolve('.', 'test', 'fixtures', 'projectWithSomeFiles');
+        let basePath = path.join('test', 'fixtures', 'projectWithSomeFiles');
         expect(filePacker.getFilesToPack()).toContain(path.join(basePath, 'README.md'));
         expect(filePacker.getFilesToPack()).toContain(path.join(basePath, 'package.json'));
 
