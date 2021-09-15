@@ -15,6 +15,8 @@ import { ConfigStore } from '~/src/ConfigStore';
 import { FilePacker } from '~/src/FilePacker';
 import RemoteWorker from '~/src/RemoteWorker';
 
+import { logger } from './test_helper';
+
 function setupFilePacker() {
   let filePacker = new FilePacker(configStore);
   expect(filePacker).toBeDefined();
@@ -34,7 +36,7 @@ let configStore, filePacker;
 describe ('RemoteWorker', () => {
   beforeEach(() => {
     configStore = new ConfigStore(path.join(process.cwd(), 'test',
-                                  'fixtures', 'projectWithSomeFiles'));
+                                  'fixtures', 'projectWithSomeFiles'), logger);
     expect(configStore).toBeDefined();
 
     filePacker = setupFilePacker();
@@ -111,7 +113,8 @@ describe ('RemoteWorker', () => {
         return new Promise((resolve, reject) => {
           let remoteWorker = new RemoteWorker(process.env.USER, '127.0.0.1',
                                               '4001', baseDir, instanceDir,
-                                              global.shipout.privateKey);
+                                              global.shipout.privateKey,
+                                              logger);
           expect(remoteWorker.getSSHConfiguration().privateKey).toBeDefined();
 
           filePacker.packageFiles()
@@ -155,7 +158,7 @@ describe ('RemoteWorker', () => {
           let remoteWorker
             = new RemoteWorker(process.env.USER, '127.0.0.1',
                                '4000', baseDir, instanceDir,
-                               global.shipout.privateKey);
+                               global.shipout.privateKey, logger);
 
 
           remoteWorker.createBaseDirectoryOnServer()
@@ -178,7 +181,7 @@ describe ('RemoteWorker', () => {
           let remoteWorker
             = new RemoteWorker(process.env.USER, '127.0.0.1',
                                '4000', baseDir, instanceDir,
-                               global.shipout.privateKey);
+                               global.shipout.privateKey, logger);
 
           expect(remoteWorker.getSSHConfiguration().privateKey)
             .toBeDefined();
@@ -204,7 +207,7 @@ describe ('RemoteWorker', () => {
           let remoteWorker
             = new RemoteWorker(process.env.USER, '127.0.0.1',
                                '4000', baseDir, instanceDir,
-                               global.shipout.privateKey);
+                               global.shipout.privateKey, logger);
 
           expect(remoteWorker.getSSHConfiguration().privateKey)
             .toBeDefined();
@@ -231,8 +234,7 @@ describe ('RemoteWorker', () => {
         return new Promise((resolve, reject) => {
           let remoteWorker
             = new RemoteWorker(process.env.USER, '127.0.0.1',
-                               '4000', baseDir, instanceDir);
-
+                               '4000', baseDir, instanceDir, null, logger);
 
           remoteWorker.createBaseDirectoryOnServer()
             .then((response) => {
@@ -250,7 +252,8 @@ describe ('RemoteWorker', () => {
       it ('should throw an error', () => {
         return new Promise((resolve, reject) => {
           let remoteWorker = new RemoteWorker(process.env.USER, '127.0.0.1',
-                                              '4000', baseDir, instanceDir);
+                                              '4000', baseDir, instanceDir,
+                                              null, logger);
           remoteWorker.createCurrentLink()
             .then((result) => {
               reject();

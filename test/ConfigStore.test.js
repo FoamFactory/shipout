@@ -2,12 +2,14 @@ import { ConfigStore } from '~/src/ConfigStore';
 import * as process from 'process';
 import * as Path from 'path';
 
+import { logger } from './test_helper';
+
 let configStore;
 
 describe('ConfigStore', () => {
   describe('when using projectWithConfig', () => {
     beforeEach(() => {
-      configStore = new ConfigStore(Path.join(__dirname, 'fixtures', 'projectWithConfig'));
+      configStore = new ConfigStore(Path.join(__dirname, 'fixtures', 'projectWithConfig'), logger);
     });
 
     it ('should show the config store is not in test mode', () => {
@@ -37,6 +39,23 @@ describe('ConfigStore', () => {
       expect(configStore.getName()).toBe('testproject');
       expect(configStore.getVersion()).toBe('1.0.0');
       expect(configStore.getFiles()).toBeUndefined();
+    });
+
+    describe ('#getPathRelativeToProjectBaseDirectory()', () => {
+      it ('should return the relative path for README.md', () => {
+        // The project base directory is already test/fixtures/projectWithConfig
+        const relPath = 'README.md';
+
+        expect(configStore.getPathRelativeToProjectBaseDirectory('README.md'))
+          .toBe(relPath);
+      });
+    });
+
+    describe ('#getProjectBaseDirectoryRelativeToWorkingDir()', () => {
+      it ('should return test/fixtures/projectWithConfig', () => {
+        expect(configStore.getProjectBaseDirectoryRelativeToWorkingDir())
+          .toBe('test/fixtures/projectWithConfig');
+      });
     });
 
     describe ('when loading a configuration using an environment variable specifying the shipout environment', () => {
@@ -77,7 +96,7 @@ describe('ConfigStore', () => {
 
   describe ('when using a project with a namespace', () => {
     beforeEach(() => {
-      configStore = new ConfigStore(Path.join(__dirname, 'fixtures', 'namespacedProject'));
+      configStore = new ConfigStore(Path.join(__dirname, 'fixtures', 'namespacedProject'), logger);
     });
 
     it ('should load the configuration', () => {
@@ -88,8 +107,7 @@ describe('ConfigStore', () => {
       expect(configStore.getRemoteRootDirectoryForEnvironment('staging')).toBe('/tmp/shipout');
       expect(configStore.getHostForEnvironment('staging')).toBe('127.0.0.1');
       expect(configStore.getPortForEnvironment('staging')).toBe('4002');
-      expect(configStore.getProjectBaseDirectory()).toBe(Path.join('test', 'fixtures', 'namespacedProject'));
-
+      expect(Path.relative(".", configStore.getAbsoluteProjectBaseDirectory())).toBe(Path.join('test', 'fixtures', 'namespacedProject'));
       expect(configStore.getName()).toBe('@loonslanding/namespaced-project');
       expect(configStore.getVersion()).toBe('1.0.0');
       expect(configStore.getFiles()).toBeUndefined();

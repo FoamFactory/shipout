@@ -15,16 +15,6 @@ class RemoteWorkStage {
     this.parentWorker = options.parentWorker;
     this.configStore = options.configStore;
     this.logger = options.logger;
-
-    // this.logger = new Logger({
-    //   showMillis: true,
-    //   showTimestamp: false,
-    //   info: "gray",
-    //   error: "red",
-    //   warn: "yellow",
-    //   debug: "green",
-    //   prefix: '[' + `STAGE: ${this.name}`.blue + ']'
-    // });
   }
 
   getName() {
@@ -60,7 +50,7 @@ class RemoteWorkStage {
 
   reportError(error) {
     console.trace(error);
-    
+
     if (error.message) {
       this.logger.error(error.message);
     } else {
@@ -198,7 +188,7 @@ export class CopyPackageToServerStage extends RemoteWorkStage {
     self.getLogger().debug('Verbose mode is turned on');
 
     if (!self.getConfigStore().isTestMode()) {
-      self.getLogger().info(`Copying package/${packedFileName} to ${deployServer}`);
+      self.getLogger().info(`Copying ${packedFilePath}/${packedFileName} to ${deployServer}`);
     }
 
     return self.getParentWorker()

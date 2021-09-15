@@ -2,7 +2,7 @@ import fs, { access, constants } from 'fs';
 import path from 'path';
 import process from 'process';
 import NodeSSH from 'node-ssh';
-import { Client } from 'node-scp'
+import { Client } from 'node-scp';
 
 /**
  *  An object that allows the quick and easy execution of commands as a given
@@ -233,11 +233,17 @@ export default class RemoteWorker {
     return new Promise((resolve, reject) => {
       let response = '';
       let ssh = new NodeSSH();
+      this.logger.debug(`Executing mkdir -p "${remoteBaseDir}/${remoteInstanceDir}"`)
       ssh.connect(sshConfig)
         .then(() => {
           return ssh.execCommand(`mkdir -p "${remoteBaseDir}/${remoteInstanceDir}"`);
         })
         .then((data) => {
+          this.logger.debug("Output from mkdir -p command: ", data);
+
+          if (data.stderr && data.stderr !== '') {
+            reject(data.stderr);
+          }
           if (data) {
             response = data.stdout;
           }
@@ -289,7 +295,9 @@ export default class RemoteWorker {
       } else {
         return Client(this.getSSHConfiguration()).then(client => {
           this.logger.debug(`Connected to SSH server. Attempting file transfer from ${localPath} to ${sshConfig.host}:${remotePath}`);
-          client.uploadFile(localPath, remotePath)
+          this.logger.debug(`Local path exists? `, fs.existsSync(localPath));
+
+          return client.uploadFile(localPath, remotePath)
             .then((response) => {
               client.close();
               resolve();
@@ -302,30 +310,6 @@ export default class RemoteWorker {
           this.logger.error(`Unable to connect to ssh host "${sshConfig.host}: `, e);
           reject(e);
         });
-        // let ssh = new NodeSSH();
-        //
-        // this.logger.debug('NodeSSH object: ', ssh);
-        //
-        // ssh.connect(sshConfig)
-        //   .then(() => {
-        //     this.logger.debug('Connected to ssh server. Attempting file copy.');
-        //     return ssh.putFile(localPath, remotePath);
-        //   })
-        //   .then((data) => {
-        //     if (data) {
-        //       result = data.stdout;
-        //     }
-        //
-        //     this.logger.debug('Data received from ssh server: ', data);
-        //     return ssh.dispose();
-        //   })
-        //   .then(() => {
-        //     resolve(result);
-        //   })
-        //   .catch((error) => {
-        //     this.logger.error('Error received from SSH server: ', error);
-        //     reject(error);
-        //   });
       }
     });
   }

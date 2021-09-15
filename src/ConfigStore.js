@@ -23,22 +23,19 @@ export class ConfigStore {
   }
 
   getLogger() {
-    return this.logger || new Logger(
-      {
-        showTimestamp: false,
-        info: "gray",
-        error: "red",
-        warn: "yellow",
-        debug: "green",
-        prefix: '[' + `Config Store`.green + ']'
-      }
-    );
+    return this.logger;
   }
 
   getConfigValueForEnvironment(environment, key, defaultVal=null) {
     const config = this.getConfigurationForEnvironment(environment);
 
-    return config ? config[key] : defaultVal;
+    if (config && config[key]) {
+      return config[key];
+    }
+
+    this.logger.warn(`${key} not set in package.json. Using default value of "${defaultVal}"`);
+
+    return defaultVal;
   }
 
   getUsername() {
@@ -143,12 +140,27 @@ export class ConfigStore {
     return name;
   }
 
-  getProjectBaseDirectory() {
-    return path.relative(path.join(__dirname, '..'), this.projectPath);
+  getPathRelativeToProjectBaseDirectory(aPath) {
+    const absPath = path.join(this.getAbsoluteProjectBaseDirectory(), aPath);
+    const resolvedPath = path.resolve(absPath);
+    const absProj = this.getAbsoluteProjectBaseDirectory();
+    const relPath = path.relative(this.getAbsoluteProjectBaseDirectory(),
+                                  resolvedPath);
+
+    // Verify relative path exists.
+    if (!fs.existsSync(path.resolve(path.join(this.getAbsoluteProjectBaseDirectory(), relPath)))) {
+      this.logger.warn(`Path does not appear to exist: ${relPath}. Are you sure files were specified correctly in your package.json?`);
+    }
+
+    return relPath;
   }
 
   getAbsoluteProjectBaseDirectory() {
-    return path.resolve(this.getProjectBaseDirectory());
+    return path.resolve(this.projectPath);
+  }
+
+  getProjectBaseDirectoryRelativeToWorkingDir() {
+    return path.relative(process.cwd(), this.getAbsoluteProjectBaseDirectory());
   }
 
   getDefinedEnvironments() {

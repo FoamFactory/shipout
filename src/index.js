@@ -25,6 +25,7 @@ export function CLI(args) {
       logger.info("Shipout Complete");
     })
     .catch((errorObj) => {
+      console.trace(errorObj);
       const error = errorObj.error;
       const logger = errorObj.logger;
       logger.error(`Unable to deploy files to remote host because of error: ${error.message}`);
@@ -55,9 +56,6 @@ export function CLIAsync(args, privateKey, isTestMode=false) {
       prefix: '[' + `Main Process`.green + ']'
     });
 
-    let configStore = new ConfigStore(path.resolve(workingDir), logger,
-                                      isTestMode);
-
     if (isTestMode) {
       Logger.setLevel('warning', true);
     } else if (configStore.getIsVerboseMode()) {
@@ -65,6 +63,13 @@ export function CLIAsync(args, privateKey, isTestMode=false) {
     } else {
       Logger.setLevel('info', true);
     }
+
+    logger.debug("Creating ConfigStore with parameters: ",
+                 path.resolve(workingDir), logger,
+                 isTestMode);
+
+    let configStore = new ConfigStore(path.resolve(workingDir), logger,
+                                      isTestMode);
 
     logger.info(`Shipout v${packageJson.version} initialized`);
 

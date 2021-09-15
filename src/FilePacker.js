@@ -22,6 +22,8 @@ export class FilePacker {
     this.configStore = configStore;
   }
 
+  // NOTE: This will always return file paths relative to the project base
+  //       directory.
   getFilesToPack() {
     // We always want to include at least README.md and package.json, regardless
     // if they are specified in the files array.
@@ -29,12 +31,15 @@ export class FilePacker {
     if (this.getConfigStore().getFiles()) {
       filesToPack = filesToPack.concat(this.getConfigStore().getFiles());
     } else {
-      filesToPack = [this.getConfigStore().getProjectBaseDirectory()];
+      // If no files are specified in the package.json file, then we should
+      // include the entire base package directory.
+      filesToPack = ["."];
     }
 
     for (let fileIdx in filesToPack) {
-      if (filesToPack[fileIdx] !== this.getConfigStore().getProjectBaseDirectory()) {
-        filesToPack[fileIdx] = path.join(this.getConfigStore().getProjectBaseDirectory(), filesToPack[fileIdx]);
+      if (filesToPack[fileIdx] !== ".") {
+        filesToPack[fileIdx] = this.getConfigStore()
+        .getPathRelativeToProjectBaseDirectory(filesToPack[fileIdx]);
       }
     }
 
@@ -66,7 +71,7 @@ export class FilePacker {
   }
 
   getRootPackageDirectory() {
-    return path.join(this.getConfigStore().getProjectBaseDirectory(),
+    return path.join(this.getConfigStore().getAbsoluteProjectBaseDirectory(),
                      PACKAGE_DIR_NAME);
   }
 
@@ -85,48 +90,37 @@ export class FilePacker {
     let self = this;
     let filesToPack = this.getFilesToPack();
 
-    return new Promise((resolve, reject) => {
-      mkdirp(self.getPackedFilePath())
-        .then(() => {
+    return mkdirp(self.getPackedFilePath())
+      .then(() => {
+        return new Promise((resolve, reject) => {
           let write = fs.createWriteStream;
-          let dirsGettingPacked = [];
-          tar.c({
+          let relFilesToPack = [];
+          for (let fileIdx in filesToPack) {
+            relFilesToPack.push(path.join(
+              self.getConfigStore().getProjectBaseDirectoryRelativeToWorkingDir(),
+              filesToPack[fileIdx]));
+          }
+
+          return tar.c({
               gzip: true,
               file: path.join(self.getPackedFilePath(), self.getPackedFileName()),
-              filter: (entry) => {
-                if (self.getConfigStore().getProjectBaseDirectory() === entry) {
-                  // Include the base directory a duh
-                  dirsGettingPacked.push(entry);
-                  return true;
-                }
-
-                if (filesToPack.includes(entry)) {
-                  dirsGettingPacked.push(entry);
-                  return true;
-                }
-
-                for (let idx in filesToPack) {
-                  if (entry.startsWith(filesToPack[idx])) {
-                    dirsGettingPacked.push(entry);
-                    return true;
-                  }
-                }
-
-                return false;
-              }
             },
-            filesToPack)
+            relFilesToPack)
             .then(out => {
               this.configStore.getLogger().debug('Packed file paths: ',
-                                                 dirsGettingPacked);
+                                                 relFilesToPack);
 
               resolve({
                 path: self.getPackedFilePath(),
                 fileName: self.getPackedFileName()
               });
+            })
+            .catch((e) => {
+              this.configStore.getLogger().trace("Problem while packing file: ", e);
+              reject(e);
             });
         });
-    });
+      });
   }
 
   /**
