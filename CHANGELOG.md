@@ -3,6 +3,10 @@
 <a name="0.1.7"></a>
 ## 0.1.7 (2021-09-15)
 
+### Bug Fixes
+
+- 🐛 Fix issue where ConfigStore was not declared before use. [[7fc0195](https://github.com/FoamFactory/shipout/commit/7fc01955ad9f6f6f2beb96ace39cbffb87ae6006)]
+
 ### Documentation and Copy Changes
 
 - 📖 Update package.json and CHANGELOG.md. [[831a3ce](https://github.com/FoamFactory/shipout/commit/831a3ce43fa2e33e2078446e0e04c51f77a6f72d)]
