@@ -56,6 +56,9 @@ export function CLIAsync(args, privateKey, isTestMode=false) {
       prefix: '[' + `Main Process`.green + ']'
     });
 
+    let configStore = new ConfigStore(path.resolve(workingDir), logger,
+                                      isTestMode);
+
     if (isTestMode) {
       Logger.setLevel('warning', true);
     } else if (configStore.getIsVerboseMode()) {
@@ -63,14 +66,7 @@ export function CLIAsync(args, privateKey, isTestMode=false) {
     } else {
       Logger.setLevel('info', true);
     }
-
-    logger.debug("Creating ConfigStore with parameters: ",
-                 path.resolve(workingDir), logger,
-                 isTestMode);
-
-    let configStore = new ConfigStore(path.resolve(workingDir), logger,
-                                      isTestMode);
-
+    
     logger.info(`Shipout v${packageJson.version} initialized`);
 
     let filePacker = new FilePacker(configStore);

@@ -1,5 +1,13 @@
 # Changelog
 
+<a name="0.1.7"></a>
+## 0.1.7 (2021-09-15)
+
+### Documentation and Copy Changes
+
+- 📖 Update package.json and CHANGELOG.md. [[831a3ce](https://github.com/FoamFactory/shipout/commit/831a3ce43fa2e33e2078446e0e04c51f77a6f72d)]
+
+
 <a name="0.1.6"></a>
 ## 0.1.6 (2021-09-15)
 
