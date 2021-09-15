@@ -1,5 +1,18 @@
 # Changelog
 
+<a name="0.1.6"></a>
+## 0.1.6 (2021-09-15)
+
+### Bug Fixes
+
+- 🐛 Fix issue with absolute paths in deployments. [[6f12a38](https://github.com/foamfactory/shipout/commit/6f12a3842b329eac0b691aa78fc9658018085c25)]
+- 🐛 Fix issue where files were being deployed using absolute paths. [[9d4ece9](https://github.com/foamfactory/shipout/commit/9d4ece91e8ce8df0bde52e3c305d406ffc03d145)]
+
+### Dependency Changes
+
+- ⬆️ Upgrade packages. [[ac80c5c](https://github.com/foamfactory/shipout/commit/ac80c5c5c39288f4f73882a92b9dab787ddf56e4)]
+
+
 <a name="0.1.5"></a>
 ## 0.1.5 (2021-08-29)
 
