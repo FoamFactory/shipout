@@ -6,21 +6,21 @@ A lightweight tool for deploying node applications from within a source reposito
 to packages hosted by `@foamfactory` on github packages:
 ```
 registry=https://registry.npmjs.org
-@foamfactory:registry=https://npm.pkg.github.com
+@foamfactoryio:registry=https://npm.pkg.github.com
 ```
 Alternatively, if using `yarn`, you need to add the following `.yarnrc`:
 ```
-"@foamfactory:registry" "https://npm.pkg.github.com/"
+"@foamfactoryio:registry" "https://npm.pkg.github.com/"
 registry "https://registry.npmjs.org/"
 ```
 
 2. Inside of your project, run:
 ```
-npm install --save-dev @foamfactory/shipout
+npm install --save-dev @foamfactoryio/shipout
 ```
 Alternatively, if using `yarn`, run:
 ```
-yarn add -D @foamfactory/shipout
+yarn add -D @foamfactoryio/shipout
 ```
 
 3. Add your configuration to your `package.json` or environment variables (see
