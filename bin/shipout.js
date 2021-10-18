@@ -1,2 +1,2 @@
 #! /usr/bin/env node
-require('../dist/src').CLI(process.argv.slice(2));
+require(__dirname + '/../dist/src').CLI(process.argv.slice(2));
