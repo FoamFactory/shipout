@@ -16,7 +16,7 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
+  build-and-test:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -28,6 +28,17 @@ jobs:
       - name: Install Dependencies
         run: yarn install --production=false
 
-      # Runs a single command using the runners shell
       - name: Build Codebase
         run: yarn build
+
+      # Authentication methods are currently failing, which is really lame.
+      # - name: Install SSH key
+      #   uses: shimataro/ssh-key-action@v2
+      #   with:
+      #     key: ${{ secrets.SSH_KEY }}
+      #     name: id_rsa # optional
+      #     known_hosts: unnecessary
+      #     if_key_exists: replace
+      #
+      # - name: Run Test Suite
+      #   run: yarn test
