@@ -12,17 +12,13 @@
   },
   "scripts": {
     "start": "yarn build && node bin/shipout.js",
-    "build": "babel src -d dist",
+    "build": "tsc",
     "changelog:generate": "gitmoji-changelog --output CHANGELOG.md",
+    "clean": "rimraf dist && mkdir dist",
     "test": "jest",
     "test:manual": "babel test/manual_server.js -d dist && node dist/manual_server.js",
     "test:coverage": "jest --coverage",
     "prepublishOnly": "yarn build"
-  },
-  "jest": {
-    "transform": {
-      "^.+\\.jsx?$": "babel-jest"
-    }
   },
   "keywords": [
     "deploy",
@@ -45,14 +41,19 @@
     "@babel/core": "^7.10.2",
     "@babel/plugin-proposal-class-properties": "^7.10.1",
     "@babel/preset-env": "^7.10.2",
+    "@types/jest": "^27.0.2",
+    "@types/lodash": "^4.14.175",
+    "@types/ssh2": "^0.5.48",
     "babel-jest": "^27.0.6",
     "babel-plugin-root-import": "^6.5.0",
-    "jest": "^26.0.1",
+    "jest": "27.0.0",
     "jest-serial-runner": "^1.1.0",
     "jest-wrap": "^1.7.0",
     "lodash": "^4.17.21",
     "tar": "^6.1.11",
-    "test-sshdng": "^0.0.2"
+    "test-sshdng": "^0.0.2",
+    "ts-jest": "^27.0.7",
+    "typescript": "^4.4.4"
   },
   "dependencies": {
     "colors": "^1.4.0",

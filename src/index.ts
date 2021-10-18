@@ -1,33 +1,37 @@
 import * as fs from 'fs';
-import NodeSSH from 'node-ssh';
 import * as path from 'path';
 import 'process';
 import Logger from 'pretty-logger';
 import * as colors from 'colors';
-import packageJson from '../package';
+import packageJson from '../package.json';
 
 import { ConfigStore } from './ConfigStore';
 import { FilePacker } from './FilePacker';
-import RemoteWorker from '~/src/RemoteWorker';
+import RemoteWorker from './RemoteWorker';
 import { CopyPackageToServerStage,
          CreateCurrentLinkStage,
          MakeDirectoryStage,
          PackageRemoteWorkStage,
          LocalCleanupStage,
          RemoteCleanupStage,
-         UnpackStage } from '~/src/RemoteWorkStage';
+         UnpackStage } from './RemoteWorkStage';
 
-let logger;
+interface Logger {
+  error(input: string): any;
+  info(input: string): any;
+}
 
-export function CLI(args) {
+let logger : any;
+
+export function CLI(args: Array<string>) {
   CLIAsync(args, null, false)
-    .then((logger) => {
-      logger.info("Shipout Complete");
+    .then((lgr: Logger) => {
+      lgr.info("Shipout Complete");
     })
     .catch((errorObj) => {
       console.trace(errorObj);
       const error = errorObj.error;
-      const logger = errorObj.logger;
+      const logger : Logger = errorObj.logger;
       logger.error(`Unable to deploy files to remote host because of error: ${error.message}`);
       process.exit(1);
     });
@@ -60,13 +64,14 @@ export function CLIAsync(args, privateKey, isTestMode=false) {
                                       isTestMode);
 
     if (isTestMode) {
-      Logger.setLevel('warning', true);
+      Logger.setLevel('debug');
+      // Logger.setLevel('warning', true);
     } else if (configStore.getIsVerboseMode()) {
       Logger.setLevel('debug');
     } else {
       Logger.setLevel('info', true);
     }
-    
+
     logger.info(`Shipout v${packageJson.version} initialized`);
 
     let filePacker = new FilePacker(configStore);

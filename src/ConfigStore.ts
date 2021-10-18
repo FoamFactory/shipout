@@ -4,11 +4,24 @@ import * as process from 'process';
 import moment from 'moment';
 import Logger from 'pretty-logger';
 
+interface PackageConfiguration {
+  shipout: object;
+  files: Array<string>;
+  version: string;
+  name: string;
+}
+
 /**
  *  A configuration store based off of either a client's `package.json` or
  *  environment variables.
  */
 export class ConfigStore {
+  projectPath: string;
+  remoteInstanceDir: string;
+  logger: Logger;
+  testMode: boolean;
+  _packageConfig: PackageConfiguration;
+
   constructor(projectPath, logger, isTestMode=false) {
     this.projectPath = projectPath;
 
@@ -115,9 +128,9 @@ export class ConfigStore {
   }
 
   getNumReleasesToKeepForEnvironment(environment) {
-    let numDirs = this.getConfigValueForEnvironment(environment, "keep_releases");
+    let numDirs = this.getConfigValueForEnvironment(environment, "keep_releases", 5);
 
-    return !!(numDirs) ? numDirs : 5;
+    return numDirs;
   }
 
   isNamespacedProject() {

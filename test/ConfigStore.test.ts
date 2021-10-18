@@ -1,4 +1,4 @@
-import { ConfigStore } from '~/src/ConfigStore';
+import { ConfigStore } from '../src/ConfigStore';
 import * as process from 'process';
 import * as Path from 'path';
 

@@ -1,3 +1,4 @@
+import { ConfigStore } from 'ConfigStore';
 import * as fs from 'fs';
 import mkdirp from 'mkdirp';
 import * as path from 'path';
@@ -12,13 +13,15 @@ const PACKAGE_DIR_NAME = 'package';
  *  project directory.
  */
 export class FilePacker {
+  configStore: ConfigStore;
+
   /**
    *  Create a new {@link FilePacker} instance.
    *
    *  @param {ConfigStore} configStore An instance of {@link ConfigStore} used to
    *         retrieve the necessary metadata for packing.
    */
-  constructor(configStore) {
+  constructor(configStore: ConfigStore) {
     this.configStore = configStore;
   }
 
@@ -131,7 +134,7 @@ export class FilePacker {
    */
   cleanUp() {
     let self = this;
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       let packagePath = self.getRootPackageDirectory();
 
       rimraf(packagePath, (error) => {
