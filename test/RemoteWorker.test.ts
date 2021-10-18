@@ -10,12 +10,14 @@ import { isVerboseMode,
          withSFTPServer,
          connectAndRunCommand } from './server_helper';
 
-import { createBaseDirectoryOnServer } from '../src';
-import { ConfigStore } from '~/src/ConfigStore';
-import { FilePacker } from '~/src/FilePacker';
-import RemoteWorker from '~/src/RemoteWorker';
+import { ConfigStore } from '../src/ConfigStore';
+import { FilePacker } from '../src/FilePacker';
+import RemoteWorker from '../src/RemoteWorker';
 
 import { logger } from './test_helper';
+
+wrap.register(withSSHMimicServer);
+wrap.register(withSFTPServer);
 
 function setupFilePacker() {
   let filePacker = new FilePacker(configStore);
@@ -92,7 +94,7 @@ describe ('RemoteWorker', () => {
       });
 
       afterEach(() => {
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
           let resultPath = path.join(baseDir, instanceDir);
           rimraf(resultPath, (error) => {
             if (error) {
@@ -110,7 +112,7 @@ describe ('RemoteWorker', () => {
       it ('should copy the package archive to /tmp/blorf', () => {
         let filePacker = setupFilePacker();
 
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
           let remoteWorker = new RemoteWorker(process.env.USER, '127.0.0.1',
                                               '4001', baseDir, instanceDir,
                                               global.shipout.privateKey,
@@ -154,7 +156,7 @@ describe ('RemoteWorker', () => {
       let expectedCommand = `mkdir -p "${baseDir}/${instanceDir}"`;
 
       it ('should respond with a mkdir command', () => {
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
           let remoteWorker
             = new RemoteWorker(process.env.USER, '127.0.0.1',
                                '4000', baseDir, instanceDir,
@@ -177,7 +179,7 @@ describe ('RemoteWorker', () => {
       let expectedCommand = `if [[ -h ${baseDir}/current ]]; then rm ${baseDir}/current; fi && ln -s ${baseDir}/${instanceDir} ${baseDir}/current`;
 
       it ('should respond with an ln command', () => {
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
           let remoteWorker
             = new RemoteWorker(process.env.USER, '127.0.0.1',
                                '4000', baseDir, instanceDir,
@@ -200,7 +202,7 @@ describe ('RemoteWorker', () => {
 
     describe('unpackRemotely()', () => {
       it ('shouild respond with a tar command', () => {
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
           let filePacker = setupFilePacker();
           let expectedCommand = `cd ${baseDir}/${instanceDir} && tar xzvf ${filePacker.getPackedFileName()}`;
 
@@ -231,7 +233,7 @@ describe ('RemoteWorker', () => {
 
     describe ('createBaseDirectoryOnServer()', () => {
       it ('should throw an error', () => {
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
           let remoteWorker
             = new RemoteWorker(process.env.USER, '127.0.0.1',
                                '4000', baseDir, instanceDir, null, logger);
@@ -250,7 +252,7 @@ describe ('RemoteWorker', () => {
 
     describe ('createCurrentLink()', () => {
       it ('should throw an error', () => {
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
           let remoteWorker = new RemoteWorker(process.env.USER, '127.0.0.1',
                                               '4000', baseDir, instanceDir,
                                               null, logger);

@@ -6,14 +6,15 @@ import { isVerboseMode,
 import wrap from 'jest-wrap';
 
 wrap.register(withSSHMimicServer);
+const PORT : number = 4001;
 
 describe ('Server Helper', () => {
-  wrap().withSSHMimicServer().describe('after having set up the SSH server', () => {
+  wrap().withSSHMimicServer(PORT).describe('after having set up the SSH server', () => {
     it ('should allow connections', () => {
-      return new Promise((resolve, reject) => {
+      return new Promise<void>((resolve, reject) => {
         let connectionParams = {
           host: '127.0.0.1',
-          port: '4000',
+          port: PORT,
           username: process.env.USER,
           privateKey: global.shipout.privateKey
         };

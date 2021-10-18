@@ -24,7 +24,7 @@ describe ('shipout command line', () => {
     });
 
     it ('should deploy the project', () => {
-      return new Promise((resolve, reject) => {
+      return new Promise<void>((resolve, reject) => {
         CLIAsync([__dirname + '/fixtures/namespacedProject'],
                  global.shipout.privateKey, true)
           .then(() => {

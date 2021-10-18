@@ -1,5 +1,5 @@
-import { ConfigStore } from '~/src/ConfigStore';
-import { FilePacker } from '~/src/FilePacker';
+import { ConfigStore } from '../src/ConfigStore';
+import { FilePacker } from '../src/FilePacker';
 import * as path from 'path';
 import * as fs from 'fs';
 import { logger } from './test_helper';

@@ -3,6 +3,9 @@ import path from 'path';
 import process from 'process';
 import NodeSSH from 'node-ssh';
 import { Client } from 'node-scp';
+import { RemoteWorkStage, PackageRemoteWorkStage } from 'RemoteWorkStage';
+import { Logger } from 'pretty-logger';
+import { ConfigStore } from './ConfigStore';
 
 /**
  *  An object that allows the quick and easy execution of commands as a given
@@ -10,13 +13,22 @@ import { Client } from 'node-scp';
  */
 export default class RemoteWorker {
 
-  static create(configStore, privateKey) {
+  static create(configStore : ConfigStore, privateKey: string | void) {
     return new RemoteWorker(configStore.getUsername(), configStore.getHost(),
                             configStore.getPort(),
                             configStore.getRemoteBaseDirectory(),
                             configStore.getRemoteInstanceDirectory(),
                             privateKey, configStore.getLogger());
   }
+
+  user: string;
+  host: string;
+  port: number;
+  remoteBaseDir: string;
+  remoteInstanceDir: string;
+  privateKey: string;
+  stages: Array<RemoteWorkStage>;
+  logger: Logger;
 
   /**
    *  Create a new instance of RemoteWorker.
@@ -67,10 +79,10 @@ export default class RemoteWorker {
   run() {
     let self = this;
 
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       if (self.stages.length > 0) {
-        return self.stages[0].run()
-          .then(() => {
+        return self.stages[0].run(null)
+          .then((data) => {
             resolve();
           })
           .catch((error) => {
@@ -122,17 +134,17 @@ export default class RemoteWorker {
   cleanUpRemoteDirectories(numDirectoriesToKeep) {
     let self = this;
 
-    return new Promise((resolve, reject) => {
+    // return new Promise<any>((resolve, reject) => {
       let remoteBaseDir = self.remoteBaseDir;
       let ssh = new NodeSSH();
       let sshConfig = self.getSSHConfiguration();
-      ssh.connect(sshConfig)
+      return ssh.connect(sshConfig)
         .then(() => {
           let command = `ls -l ${remoteBaseDir} | awk '{ print $9 }'`;
           return ssh.execCommand(command);
         })
-        .then((data) => {
-          return new Promise((resolve, reject) => {
+        .then((data: any) => {
+          return new Promise<any>((resolve, reject) => {
             let result = data.stdout.split('\n');
             let directoriesToDispose = [];
             let hasCurrentLink = result.includes('current');
@@ -187,7 +199,7 @@ export default class RemoteWorker {
             }
           });
         })
-        .then((data) => {
+        .then((data: any) => {
           if (numDirectoriesToKeep >= 0) {
             let command = `rm -rf`;
             for (let i = 0; i < data.directoriesToDispose.length; i++) {
@@ -195,22 +207,15 @@ export default class RemoteWorker {
             }
 
             return ssh.execCommand(command);
-          } else {
-            return new Promise((resolve, reject) => {
-              resolve();
-            })
           }
         })
         .then((data) => {
+          this.logger.debug('Finished with remote cleanup. Disposing of ssh connection.');
           return ssh.dispose();
         })
-        .then((data) => {
-          resolve();
-        })
         .catch((error) => {
-          reject(error);
+          this.logger.error(error);
         });
-    });
   }
 
   /**
@@ -275,7 +280,7 @@ export default class RemoteWorker {
     let self = this;
     let sshConfig = this.getSSHConfiguration();
 
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       let result = '';
 
       // Rather than doing this through SSH, if the deploy host is localhost,

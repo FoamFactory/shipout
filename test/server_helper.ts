@@ -2,14 +2,20 @@ import fs from 'fs';
 import wrap from 'jest-wrap';
 import _ from 'lodash';
 import process from 'process';
-import Client from 'ssh2';
-import { TestSSHD } from 'test-sshdng';
-
-wrap.register(withSSHMimicServer);
-wrap.register(withSFTPServer);
+import * as ssh2 from 'ssh2';
+import * as TestSSHDng from 'test-sshdng';
 
 export function isVerboseMode() {
   return _.indexOf(process.argv, "--verbose") !== -1;
+}
+
+type ShipoutData = {
+  ssh_server?: any;
+  privateKey?: string;
+}
+
+declare global {
+  var shipout: ShipoutData;
 }
 
 // XXX_jwir3: Do not use localhost in place of 127.0.0.1! Sometimes, host
@@ -18,7 +24,7 @@ export function isVerboseMode() {
 export function connectAndRunCommand(connectionParams, command) {
   return new Promise((resolve, reject) => {
     let response = '';
-    let conn = new Client();
+    let conn = new ssh2.Client();
     conn.on('error', (error) => {
       reject(error);
     });
@@ -54,7 +60,7 @@ export function connectAndRunCommand(connectionParams, command) {
 }
 
 function setupSSHServer(options) {
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     if (isVerboseMode()) {
       console.log("Setting up SSH server running on 127.0.0.1:4000");
     }
@@ -63,7 +69,7 @@ function setupSSHServer(options) {
       global.shipout = {};
     }
 
-    global.shipout.ssh_server = new TestSSHD(options);
+    global.shipout.ssh_server = new TestSSHDng.TestSSHD(options);
     expect(global.shipout.ssh_server).toBeDefined();
 
     let connectParams = global.shipout.ssh_server.connectParams();
@@ -101,7 +107,7 @@ function setupSSHServer(options) {
 }
 
 function tearDownSSHServer() {
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     global.shipout.ssh_server.on('exit', function() {
       if (isVerboseMode()) {
         console.log("SSH server terminated");
@@ -120,10 +126,10 @@ function tearDownSSHServer() {
   });
 }
 
-export function withSSHMimicServer() {
+export function withSSHMimicServer(port: number = 4000) {
   return this.extend('with an SSH server running on 127.0.0.1:4000 that mimicks the input command', {
     beforeAll: function() {
-      return setupSSHServer({port: 4000});
+      return setupSSHServer({port: port});
     },
 
     afterAll: function() {

@@ -1,4 +1,5 @@
 import * as colors from 'colors';
+import { ConfigStore } from 'ConfigStore';
 import Logger from 'pretty-logger';
 
 import { FilePacker } from './FilePacker';
@@ -9,12 +10,23 @@ import { FilePacker } from './FilePacker';
  *  Note that `RemoteWorkStage` is a bit of a misnomer, because not all stages
  *  actually happen on the remote machine.
  */
-class RemoteWorkStage {
+export class RemoteWorkStage {
+  name: string;
+  parentWorker: any;
+  configStore: ConfigStore;
+  logger: Logger;
+  nextStage: RemoteWorkStage;
+  isVerbose: boolean = false;
+
   constructor(options) {
     this.name = options.name;
     this.parentWorker = options.parentWorker;
     this.configStore = options.configStore;
     this.logger = options.logger;
+  }
+
+  run(data: any) : Promise<any> {
+    throw new Error('Cannot run an undefined remote work stage');
   }
 
   getName() {
@@ -72,7 +84,7 @@ export class PackageRemoteWorkStage extends RemoteWorkStage {
     super(Object.assign(options, { 'name': 'package' }));
   }
 
-  run (data) {
+  run (data: any) : Promise<any> {
     let self = this;
     let filePacker = new FilePacker(this.getConfigStore());
 
@@ -103,7 +115,7 @@ export class MakeDirectoryStage extends RemoteWorkStage {
     super(Object.assign(options, { 'name': 'mkdir' }));
   }
 
-  run (data) {
+  run (data: any) : Promise<any> {
     let self = this;
 
     let configStore = self.getConfigStore();
@@ -140,18 +152,15 @@ export class CreateCurrentLinkStage extends RemoteWorkStage {
     super(Object.assign(options, { 'name': 'link' }));
   }
 
-  run (data) {
+  run (data: any) : Promise<any> {
+    this.getLogger().debug('Creating current link');
     let self = this;
 
     let returnData = data;
-
-    if (!self.getConfigStore().isTestMode()) {
-      self.getLogger().info(`Creating current link...`);
-    }
-
     return this.getParentWorker().createCurrentLink()
       .then((newData) => {
         returnData = Object.assign(returnData, newData);
+        self.getLogger().debug('Current link created successfully');
         return self.runNextStage(returnData);
       })
       .catch((error) => {
@@ -169,7 +178,7 @@ export class CopyPackageToServerStage extends RemoteWorkStage {
     super(Object.assign(options, { 'name': 'copy' }));
   }
 
-  run (data) {
+  run (data: any) : Promise<any> {
     let self = this;
 
     if (!data.hasOwnProperty('path')) {
@@ -185,11 +194,7 @@ export class CopyPackageToServerStage extends RemoteWorkStage {
     let packedFilePath = data.path;
     let deployServer = self.getConfigStore().getHost();
 
-    self.getLogger().debug('Verbose mode is turned on');
-
-    if (!self.getConfigStore().isTestMode()) {
-      self.getLogger().info(`Copying ${packedFilePath}/${packedFileName} to ${deployServer}`);
-    }
+    self.getLogger().debug(`Copying ${packedFilePath}/${packedFileName} to ${deployServer}`);
 
     return self.getParentWorker()
     .copyPackageToServer(packedFilePath, packedFileName)
@@ -211,7 +216,7 @@ export class UnpackStage extends RemoteWorkStage {
     super(Object.assign(options, { 'name': 'unpack' }));
   }
 
-  run (data) {
+  run (data: any) : Promise<any> {
     let self = this;
     let returnData = data;
     let packedFileName = data.fileName;
@@ -220,9 +225,9 @@ export class UnpackStage extends RemoteWorkStage {
       throw 'Data does not contain a fileName property. Did a previous stage fail?';
     }
 
-    if (!self.getConfigStore().isTestMode()) {
-      self.getLogger().info(`Unpacking ${packedFileName} on remote host...`);
-    }
+    // if (!self.getConfigStore().isTestMode()) {
+      self.getLogger().debug(`Unpacking ${packedFileName} on remote host...`);
+    // }
 
     return self.getParentWorker().unpackRemotely(packedFileName)
       .then((newData) => {
@@ -247,20 +252,19 @@ export class RemoteCleanupStage extends RemoteWorkStage {
     super(Object.assign(options, { 'name': 'remoteCleanup' }));
   }
 
-  run (data) {
+  run (data: any) : Promise<any> {
     let self = this;
+    self.getLogger().debug('Cleaning up remote directories');
 
     let returnData = data;
 
     let numDirectoriesToKeep = self.getConfigStore().getNumReleasesToKeep();
     let isTestMode = self.getConfigStore().isTestMode();
 
-    if (!self.getConfigStore().isTestMode()) {
-      if (numDirectoriesToKeep < 0) {
-        self.getLogger().info("Skipping cleanup of remote releases");
-      } else {
-        self.getLogger().info(`Cleaning up all but latest ${numDirectoriesToKeep} releases on the remote host`);
-      }
+    if (numDirectoriesToKeep < 0) {
+      self.getLogger().debug("Skipping cleanup of remote releases");
+    } else {
+      self.getLogger().debug(`Cleaning up all but latest ${numDirectoriesToKeep} releases on the remote host`);
     }
 
     return self.getParentWorker().cleanUpRemoteDirectories(numDirectoriesToKeep)
@@ -282,7 +286,7 @@ export class LocalCleanupStage extends RemoteWorkStage {
     super(Object.assign(options, { 'name': 'localCleanup' }));
   }
 
-  run (data) {
+  run (data: any) : Promise<any> {
     let self = this;
 
     let returnData = data;
@@ -293,9 +297,7 @@ export class LocalCleanupStage extends RemoteWorkStage {
 
     let filePacker = new FilePacker(self.getConfigStore());
 
-    if (!self.getConfigStore().isTestMode()) {
-      self.getLogger().info(`Cleaning up ${filePacker.getPackedFilePath()}...`);
-    }
+    self.getLogger().debug(`Cleaning up ${filePacker.getPackedFilePath()}...`);
 
     return filePacker.cleanUp()
       .then((newData) => {
