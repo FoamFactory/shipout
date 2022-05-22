@@ -4,31 +4,14 @@ import * as process from 'process';
 import moment from 'moment';
 import Logger from 'pretty-logger';
 
-/**
- * An object with the configuration parameters specific to a shipout
- * environment.
- */
-interface ShipoutEnvironmentConfiguration {
-  username: string | null;
-  host: string | null;
-  port: string | number | null;
-  base_directory: string | null;
-  branch?: string;
-}
-
-interface PackageConfiguration {
-  shipout: ShipoutEnvironmentConfiguration;
-  files: Array<string>;
-  version: string;
-  name: string;
-  repository: object | null;
-}
+import { IConfigStore, ShipoutEnvironmentConfiguration,
+         PackageConfiguration } from './types';
 
 /**
  *  A configuration store based off of either a client's `package.json` or
  *  environment variables.
  */
-export class ConfigStore {
+export class ConfigStore implements IConfigStore {
   projectPath: string;
   remoteInstanceDir: string;
   logger: Logger;

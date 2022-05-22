@@ -8,17 +8,27 @@ import { ConfigStore } from './ConfigStore';
 import { CopyPackageToServerStage,
          CreateCurrentLinkStage,
          MakeDirectoryStage,
-         PackageRemoteWorkStage,
+         PackageWorkStage,
          LocalCleanupStage,
          RemoteCleanupStage,
-         RemoteWorkStage,
-         UnpackStage } from './RemoteWorkStage';
+         WorkStage,
+         UnpackStage } from './WorkStage';
+import { IRemoteWorker, IWorkStage } from './types';
 
 /**
  *  An object that allows the quick and easy execution of commands as a given
  *  user on a specific host using SSH.
  */
-export default class RemoteWorker {
+export default class RemoteWorker implements IRemoteWorker {
+  user: string;
+  host: string;
+  port: number;
+  remoteBaseDir: string;
+  remoteInstanceDir: string;
+  privateKey: string;
+  stages: Array<WorkStage>;
+  logger: Logger;
+
   static create(configStore : ConfigStore, logger: Logger | null,
                 privateKey: string | void) {
     let rw = new RemoteWorker(configStore.getUsername(), configStore.getHost(),
@@ -35,7 +45,7 @@ export default class RemoteWorker {
 
     if (configStore.getSourceType() === 'git') {
     } else {
-      rw.setStages([new PackageRemoteWorkStage(options),
+      rw.setStages([new PackageWorkStage(options),
                     new MakeDirectoryStage(options),
                     new CreateCurrentLinkStage(options),
                     new CopyPackageToServerStage(options),
@@ -46,15 +56,6 @@ export default class RemoteWorker {
 
     return rw;
   }
-
-  user: string;
-  host: string;
-  port: number;
-  remoteBaseDir: string;
-  remoteInstanceDir: string;
-  privateKey: string;
-  stages: Array<RemoteWorkStage>;
-  logger: Logger;
 
   /**
    *  Create a new instance of RemoteWorker.
@@ -124,10 +125,10 @@ export default class RemoteWorker {
    *  Create a symbolic link to the current released version of the application
    *  on the remote host.
    *
-   *  @return {Promise} A {@link Promise} that will resolve when the current
-   *          link has been created on the remote host.
+   *  @return {Promise} A {@link Promise} that will resolve with any output when
+   *          the current link has been created on the remote host.
    */
-  createCurrentLink() {
+  createCurrentLink(): Promise<string> {
     let self = this;
 
     return new Promise((resolve, reject) => {
@@ -157,10 +158,17 @@ export default class RemoteWorker {
     });
   }
 
-  cleanUpRemoteDirectories(numDirectoriesToKeep) {
+  /**
+   * Clean up any temporary directories on the remote host.
+   *
+   * @param  numDirectoriesToKeep The number of directories to keep on the
+   *         remote host. Defaults to 5.
+   *
+   * @return A promise that resolves when the operation is complete.
+   */
+  cleanUpRemoteDirectories(numDirectoriesToKeep: number = 5): Promise<any> {
     let self = this;
 
-    // return new Promise<any>((resolve, reject) => {
       let remoteBaseDir = self.remoteBaseDir;
       let ssh = new NodeSSH();
       let sshConfig = self.getSSHConfiguration();
@@ -251,7 +259,7 @@ export default class RemoteWorker {
    *          standard out on the remote host while the base directory is being
    *          created on success, or an error, on failure.
    */
-  createBaseDirectoryOnServer() {
+  createBaseDirectoryOnServer(): Promise<string> {
     let self = this;
 
     let sshConfig = self.getSSHConfiguration();
@@ -298,17 +306,14 @@ export default class RemoteWorker {
    *          {@link String}.
    *  @param  {String} packageName The file name of the package to copy.
    *
-   *  @return {Promise} A Promise that will resolve with any output written to
-   *          standard out on the remote host while the base directory is being
-   *          created on success, or an error, on failure.
+   *  @return {Promise} A Promise that will resolve once the package has been
+   *          copied.
    */
-  copyPackageToServer(packagePath, packageName) {
+  copyPackageToServer(packagePath: string, packageName: string): Promise<void> {
     let self = this;
     let sshConfig = this.getSSHConfiguration();
 
     return new Promise<void>((resolve, reject) => {
-      let result = '';
-
       // Rather than doing this through SSH, if the deploy host is localhost,
       // then we perform the copy directly. This enables us to perform testing
       // using a single SSH server test instance, rather than trying to spin up
@@ -354,7 +359,7 @@ export default class RemoteWorker {
    *          standard out on the remote host while the base directory is being
    *          created on success, or an error, on failure.
    */
-  unpackRemotely(packageName) {
+  unpackRemotely(packageName): Promise<string> {
     let self = this;
 
     return new Promise((resolve, reject) => {

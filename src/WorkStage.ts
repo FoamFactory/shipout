@@ -4,18 +4,17 @@ import Logger from 'pretty-logger';
 
 import { FilePacker } from './FilePacker';
 
+import { IRemoteWorker, IWorkStage } from './types';
+
 /**
- *  A set of tasks that are run on a remote machine by executing `run()`.
- *
- *  Note that `RemoteWorkStage` is a bit of a misnomer, because not all stages
- *  actually happen on the remote machine.
+ *  A set of related operations that can be run by executing `run()`.
  */
-export class RemoteWorkStage {
+export class WorkStage implements IWorkStage {
   name: string;
   parentWorker: any;
   configStore: ConfigStore;
   logger: Logger;
-  nextStage: RemoteWorkStage;
+  nextStage: WorkStage;
   isVerbose: boolean = false;
 
   constructor(options) {
@@ -26,7 +25,7 @@ export class RemoteWorkStage {
   }
 
   run(data: any) : Promise<any> {
-    throw new Error('Cannot run an undefined remote work stage');
+    throw new Error('Cannot run an undefined work stage');
   }
 
   getName() {
@@ -41,15 +40,15 @@ export class RemoteWorkStage {
     return this.configStore;
   }
 
-  getParentWorker() {
+  getParentWorker(): IRemoteWorker {
     return this.parentWorker;
   }
 
-  setNextStage(stage) {
+  setNextStage(stage: WorkStage) {
     this.nextStage = stage;
   }
 
-  getNextStage() {
+  getNextStage(): WorkStage {
     return this.nextStage;
   }
 
@@ -76,10 +75,10 @@ export class RemoteWorkStage {
 }
 
 /**
- *  A `RemoteWorkStage` that packages an application locally and prepares it for
+ *  A `WorkStage` that packages an application locally and prepares it for
  *  copy to a remote machine.
  */
-export class PackageRemoteWorkStage extends RemoteWorkStage {
+export class PackageWorkStage extends WorkStage {
   constructor(options) {
     super(Object.assign(options, { 'name': 'package' }));
   }
@@ -107,10 +106,10 @@ export class PackageRemoteWorkStage extends RemoteWorkStage {
 }
 
 /**
- *  A `RemoteWorkStage` that creates the target deployment directory on the
+ *  A `WorkStage` that creates the target deployment directory on the
  *  remote host.
  */
-export class MakeDirectoryStage extends RemoteWorkStage {
+export class MakeDirectoryStage extends WorkStage {
   constructor(options) {
     super(Object.assign(options, { 'name': 'mkdir' }));
   }
@@ -143,11 +142,11 @@ export class MakeDirectoryStage extends RemoteWorkStage {
 }
 
 /**
- *  A `RemoteWorkStage` that creates a link called `current` in the base
+ *  A `WorkStage` that creates a link called `current` in the base
  *  deployment directory of the remote host that points to the specific
  *  directory where the application will be deployed on the remote host.
  */
-export class CreateCurrentLinkStage extends RemoteWorkStage {
+export class CreateCurrentLinkStage extends WorkStage {
   constructor(options) {
     super(Object.assign(options, { 'name': 'link' }));
   }
@@ -170,10 +169,10 @@ export class CreateCurrentLinkStage extends RemoteWorkStage {
 }
 
 /**
- *  A `RemoteWorkStage` that copies the previously created package to the remote
+ *  A `WorkStage` that copies the previously created package to the remote
  *  host.
  */
-export class CopyPackageToServerStage extends RemoteWorkStage {
+export class CopyPackageToServerStage extends WorkStage {
   constructor(options) {
     super(Object.assign(options, { 'name': 'copy' }));
   }
@@ -209,9 +208,9 @@ export class CopyPackageToServerStage extends RemoteWorkStage {
 }
 
 /**
- *  A `RemoteWorkStage` that unpacks the copied package on the remote host.
+ *  A `WorkStage` that unpacks the copied package on the remote host.
  */
-export class UnpackStage extends RemoteWorkStage {
+export class UnpackStage extends WorkStage {
   constructor(options) {
     super(Object.assign(options, { 'name': 'unpack' }));
   }
@@ -243,11 +242,11 @@ export class UnpackStage extends RemoteWorkStage {
 }
 
 /**
- *  A `RemoteWorkStage` that cleans up all but a specified number of "old"
+ *  A `WorkStage` that cleans up all but a specified number of "old"
  *  releases on the remote host. Relies on the `package.json` configuration
  *  option `keep_releases`.
  */
-export class RemoteCleanupStage extends RemoteWorkStage {
+export class RemoteCleanupStage extends WorkStage {
   constructor (options) {
     super(Object.assign(options, { 'name': 'remoteCleanup' }));
   }
@@ -278,10 +277,10 @@ export class RemoteCleanupStage extends RemoteWorkStage {
 }
 
 /**
- *  A `RemoteWorkStage` that cleans up the `package/` directory on the local
+ *  A `WorkStage` that cleans up the `package/` directory on the local
  *  host.
  */
-export class LocalCleanupStage extends RemoteWorkStage {
+export class LocalCleanupStage extends WorkStage {
   constructor(options) {
     super(Object.assign(options, { 'name': 'localCleanup' }));
   }
