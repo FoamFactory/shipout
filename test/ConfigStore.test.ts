@@ -7,6 +7,25 @@ import { logger } from './test_helper';
 let configStore;
 
 describe('ConfigStore', () => {
+  describe('when using gitBasedProject', () => {
+    beforeEach(() => {
+      configStore = new ConfigStore(Path.join(__dirname, 'fixtures', 'gitbasedproject'), logger);
+    });
+
+    it ('loads shipout configuration successfully', () => {
+      expect(configStore.getUsernameForEnvironment('staging')).toBe('someuser');
+      expect(configStore.getRemoteRootDirectoryForEnvironment('staging')).toBe('/some/path');
+      expect(configStore.getHostForEnvironment('staging')).toBe('server.somewhere.net');
+      expect(configStore.getPortForEnvironment('staging')).toBe('3791');
+
+      expect(configStore.getName()).toBe('@foamfactory/gitbasedproject');
+      expect(configStore.getVersion()).toBe('1.0.0');
+      expect(configStore.getFiles()).toBeUndefined();
+
+      expect(configStore.getSourceType()).toBe('git');
+    });
+  });
+
   describe('when using projectWithConfig', () => {
     beforeEach(() => {
       configStore = new ConfigStore(Path.join(__dirname, 'fixtures', 'projectWithConfig'), logger);
@@ -39,6 +58,9 @@ describe('ConfigStore', () => {
       expect(configStore.getName()).toBe('testproject');
       expect(configStore.getVersion()).toBe('1.0.0');
       expect(configStore.getFiles()).toBeUndefined();
+
+      expect(configStore.getSourceType()).toBe('local');
+      expect(configStore.getDeploymentBranchForEnvironment('staging')).toBeNull();
     });
 
     describe ('#getPathRelativeToProjectBaseDirectory()', () => {

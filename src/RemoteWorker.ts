@@ -33,8 +33,8 @@ export default class RemoteWorker {
       'logger': logger
     };
 
-    // if (configStore.getSourceType() === 'git') {
-    // } else {
+    if (configStore.getSourceType() === 'git') {
+    } else {
       rw.setStages([new PackageRemoteWorkStage(options),
                     new MakeDirectoryStage(options),
                     new CreateCurrentLinkStage(options),
@@ -42,7 +42,7 @@ export default class RemoteWorker {
                     new UnpackStage(options),
                     new RemoteCleanupStage(options),
                     new LocalCleanupStage(options)]);
-    // }
+    }
 
     return rw;
   }

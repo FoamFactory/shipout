@@ -138,10 +138,10 @@ export function withSSHMimicServer(port: number = 4000) {
   });
 }
 
-export function withSFTPServer() {
-  return this.extend('with an SFTP server running on 127.0.0.1:4001', {
+export function withSFTPServer(port: string = '4001') {
+  return this.extend(`with an SFTP server running on 127.0.0.1:${port}`, {
     beforeAll: function() {
-      return setupSSHServer({ port: 4001, mode: 'transfer'});
+      return setupSSHServer({ port: port, mode: 'transfer'});
     },
 
     afterAll: function() {

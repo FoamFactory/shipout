@@ -127,6 +127,10 @@ export class ConfigStore {
     return this._getPackageConfig().files;
   }
 
+  getRepository() {
+    return this._getPackageConfig().repository;
+  }
+
   getVersion() {
     return this._getPackageConfig().version;
   }
@@ -135,9 +139,34 @@ export class ConfigStore {
     return this._getPackageConfig().name;
   }
 
+  /**
+   * Retrieve the 'type' of the source code location.
+   *
+   * This will either be `git` or `local`, depending on values in the
+   * package.json file. If `repository` is present in the package.json file,
+   * then this will be `git`. Otherwise, if `files` is present in package.json,
+   * then this will be `local`. If neither value is present, then this will
+   * default to `local`, but will likely result in an error during packaging.
+   *
+   * @return A `String`, either `git or `local`.
+   */
+  getSourceType() : String {
+    return this.getRepository() ? 'git' : 'local';
+  }
+
   getNumReleasesToKeep() {
     this._checkAppEnvironmentVariableExists();
     return this.getNumReleasesToKeepForEnvironment(process.env.APP_ENVIRONMENT);
+  }
+
+  getDeploymentBranchForEnvironment(environment) {
+    let branch = this.getConfigValueForEnvironment(environment, "branch", null);
+    if (!!branch && this.getSourceType() === 'local') {
+      this.getLogger().warn(`Configuration for environment ${environment} specifies branch '${branch}' but a repository is not defined. Value will be ignored.`);
+      return null;
+    }
+
+    return branch;
   }
 
   getNumReleasesToKeepForEnvironment(environment) {
@@ -202,13 +231,15 @@ export class ConfigStore {
     let port = this.getVariableFromEnvironmentInPackageJson(environment, "port");
     let username = this.getVariableFromEnvironmentInPackageJson(environment, "username");
     let verboseMode = this.getVariableFromEnvironmentInPackageJson(environment, "verbose");
+    let branch = this.getVariableFromEnvironmentInPackageJson(environment, "branch");
 
     let retVal =  {
       "base_directory": base_dir,
       "host": host,
       "port": port,
       "username": username || process.env.USER,
-      "verbose": !!verboseMode
+      "verbose": !!verboseMode,
+      "branch": branch
     };
 
     if (!retVal.port) {

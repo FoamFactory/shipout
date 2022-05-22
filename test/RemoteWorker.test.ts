@@ -82,7 +82,7 @@ describe ('RemoteWorker', () => {
     });
   });
 
-  wrap().withSFTPServer().describe('with a base directory of /tmp and an instance directory of blorf', () => {
+  wrap().withSFTPServer(4614).describe('with a base directory of /tmp and an instance directory of blorf', () => {
     let baseDir = '/tmp';
     let instanceDir = 'blorf';
 
@@ -114,7 +114,7 @@ describe ('RemoteWorker', () => {
 
         return new Promise<void>((resolve, reject) => {
           let remoteWorker = new RemoteWorker(process.env.USER, '127.0.0.1',
-                                              '4001', baseDir, instanceDir,
+                                              '4614', baseDir, instanceDir,
                                               global.shipout.privateKey,
                                               logger);
           expect(remoteWorker.getSSHConfiguration().privateKey).toBeDefined();

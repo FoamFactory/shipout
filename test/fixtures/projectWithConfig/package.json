@@ -13,7 +13,8 @@
       "username": "someuser",
       "host": "server.somewhere.net",
       "port": "3791",
-      "base_directory": "/some/path"
+      "base_directory": "/some/path",
+      "branch": "shouldBeIgnored"
     }
   }
 }
