@@ -4,11 +4,24 @@ import * as process from 'process';
 import moment from 'moment';
 import Logger from 'pretty-logger';
 
+/**
+ * An object with the configuration parameters specific to a shipout
+ * environment.
+ */
+interface ShipoutEnvironmentConfiguration {
+  username: string | null;
+  host: string | null;
+  port: string | number | null;
+  base_directory: string | null;
+  branch?: string;
+}
+
 interface PackageConfiguration {
-  shipout: object;
+  shipout: ShipoutEnvironmentConfiguration;
   files: Array<string>;
   version: string;
   name: string;
+  repository: object | null;
 }
 
 /**
@@ -181,7 +194,7 @@ export class ConfigStore {
     return Object.keys(shipout_config);
   }
 
-  getConfigurationForEnvironment(environment) {
+  getConfigurationForEnvironment(environment) : ShipoutEnvironmentConfiguration {
     this._checkEnvironmentDefined(environment);
 
     let base_dir = this.getVariableFromEnvironmentInPackageJson(environment, "base_directory");
@@ -214,7 +227,7 @@ export class ConfigStore {
     return retVal;
   }
 
-  getPackageJsonTopLevelConfig() {
+  getPackageJsonTopLevelConfig() : ShipoutEnvironmentConfiguration {
     const pkg = this._getPackageConfig();
 
     return !!pkg.shipout && pkg.shipout;
@@ -232,7 +245,7 @@ export class ConfigStore {
     return !!envConfig && envConfig[varName];
   }
 
-  _getPackageConfig() {
+  _getPackageConfig() : PackageConfiguration {
     if (!this._packageConfig) {
       this._packageConfig = JSON.parse(
         fs.readFileSync(path.resolve(this.projectPath, "package.json"), "utf-8")
