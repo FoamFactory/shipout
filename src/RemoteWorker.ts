@@ -3,22 +3,48 @@ import path from 'path';
 import process from 'process';
 import NodeSSH from 'node-ssh';
 import { Client } from 'node-scp';
-import { RemoteWorkStage, PackageRemoteWorkStage } from 'RemoteWorkStage';
 import { Logger } from 'pretty-logger';
 import { ConfigStore } from './ConfigStore';
+import { CopyPackageToServerStage,
+         CreateCurrentLinkStage,
+         MakeDirectoryStage,
+         PackageRemoteWorkStage,
+         LocalCleanupStage,
+         RemoteCleanupStage,
+         RemoteWorkStage,
+         UnpackStage } from './RemoteWorkStage';
 
 /**
  *  An object that allows the quick and easy execution of commands as a given
  *  user on a specific host using SSH.
  */
 export default class RemoteWorker {
+  static create(configStore : ConfigStore, logger: Logger | null,
+                privateKey: string | void) {
+    let rw = new RemoteWorker(configStore.getUsername(), configStore.getHost(),
+                              configStore.getPort(),
+                              configStore.getRemoteBaseDirectory(),
+                              configStore.getRemoteInstanceDirectory(),
+                              privateKey, configStore.getLogger());
 
-  static create(configStore : ConfigStore, privateKey: string | void) {
-    return new RemoteWorker(configStore.getUsername(), configStore.getHost(),
-                            configStore.getPort(),
-                            configStore.getRemoteBaseDirectory(),
-                            configStore.getRemoteInstanceDirectory(),
-                            privateKey, configStore.getLogger());
+    let options = {
+      'parentWorker': rw,
+      'configStore': configStore,
+      'logger': logger
+    };
+
+    // if (configStore.getSourceType() === 'git') {
+    // } else {
+      rw.setStages([new PackageRemoteWorkStage(options),
+                    new MakeDirectoryStage(options),
+                    new CreateCurrentLinkStage(options),
+                    new CopyPackageToServerStage(options),
+                    new UnpackStage(options),
+                    new RemoteCleanupStage(options),
+                    new LocalCleanupStage(options)]);
+    // }
+
+    return rw;
   }
 
   user: string;

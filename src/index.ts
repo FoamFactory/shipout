@@ -8,13 +8,6 @@ import packageJson from '../package.json';
 import { ConfigStore } from './ConfigStore';
 import { FilePacker } from './FilePacker';
 import RemoteWorker from './RemoteWorker';
-import { CopyPackageToServerStage,
-         CreateCurrentLinkStage,
-         MakeDirectoryStage,
-         PackageRemoteWorkStage,
-         LocalCleanupStage,
-         RemoteCleanupStage,
-         UnpackStage } from './RemoteWorkStage';
 
 interface Logger {
   error(input: string): any;
@@ -79,23 +72,9 @@ export function CLIAsync(args, privateKey, isTestMode=false) {
     let packedFilePath;
     let packedFileName;
 
-    let remoteWorker = RemoteWorker.create(configStore,
+    let remoteWorker = RemoteWorker.create(configStore, logger,
                                            privateKey ? privateKey : null);
 
-
-    let options = {
-      'parentWorker': remoteWorker,
-      'configStore': configStore,
-      'logger': logger
-    };
-
-    remoteWorker.setStages([new PackageRemoteWorkStage(options),
-                            new MakeDirectoryStage(options),
-                            new CreateCurrentLinkStage(options),
-                            new CopyPackageToServerStage(options),
-                            new UnpackStage(options),
-                            new RemoteCleanupStage(options),
-                            new LocalCleanupStage(options)]);
     return remoteWorker.run()
       .then(() => {
         resolve(logger);

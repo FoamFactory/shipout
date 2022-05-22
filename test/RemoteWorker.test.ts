@@ -56,7 +56,7 @@ describe ('RemoteWorker', () => {
         });
 
         it ('should return an SSH configuration using the SSH_AUTH_SOCK', () => {
-          let manager = RemoteWorker.create(configStore);
+          let manager = RemoteWorker.create(configStore, null);
           let config = manager.getSSHConfiguration();
 
           expect(config.agent).toBe('socket-path');
@@ -71,7 +71,7 @@ describe ('RemoteWorker', () => {
         });
 
         it ('should return an SSH configuration that does not use the SSH_AUTH_SOCK', () => {
-          let manager = RemoteWorker.create(configStore);
+          let manager = RemoteWorker.create(configStore, null);
           let config = manager.getSSHConfiguration();
 
           expect(config.agent).toBe(false);
