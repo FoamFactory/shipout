@@ -22,6 +22,10 @@ declare global {
 //            resolution resolves localhost to ::1 (IPv6) instead of 127.0.0.1,
 //            which doesn't appear to work with test-sshd.
 export function connectAndRunCommand(connectionParams, command) {
+  // XXX_jwir3: If connectionParams.loginShell is FALSE (default) or not
+  //            provided, then a login shell will not be created, meaning that
+  //            the user's .bash_profile will NOT be sourced, and the
+  //            environment will not be set up for an interactive shell.
   return new Promise((resolve, reject) => {
     let response = '';
     let conn = new ssh2.Client();
@@ -40,7 +44,12 @@ export function connectAndRunCommand(connectionParams, command) {
       if (isVerboseMode()) {
         console.log(`Connection is ready. Running command: ${command}`);
       }
-      conn.exec(command, {}, (err, stream) => {
+      let wrappedCommand = command;
+      if (connectionParams.loginShell) {
+        wrappedCommand = `bash -l -c "${command}"`;
+      }
+
+      conn.exec(wrappedCommand, {}, (err, stream) => {
         if (err) {
           reject(err);
         }
@@ -150,10 +159,10 @@ export function withSFTPServer(port: string = '4001') {
   });
 }
 
-export function withFullSSHServer() {
-  return this.extend('with an SSH server running on 127.0.0.1:4002', {
+export function withFullSSHServer(port: string) {
+  return this.extend(`with an SSH server running on 127.0.0.1:${port}`, {
     beforeAll: function() {
-      return setupSSHServer({port: 4002, mode: 'exec'});
+      return setupSSHServer({port: port, mode: 'exec'});
     },
 
     afterAll: function() {

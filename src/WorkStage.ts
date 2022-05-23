@@ -54,9 +54,14 @@ export class WorkStage implements IWorkStage {
 
   runNextStage(data) {
     let self = this;
+
     if (self.getNextStage()) {
       return self.getNextStage().run(data);
     }
+
+    return new Promise<void>((resolve, reject) => {
+      resolve(data);
+    });
   }
 
   reportError(error) {
@@ -306,5 +311,33 @@ export class LocalCleanupStage extends WorkStage {
       .catch((error) => {
         self.reportError(error);
       });
+  }
+}
+
+export class CheckNpmStage extends WorkStage {
+  minVersion: string;
+
+  constructor(options) {
+    super(
+      {
+        ...options,
+        'name': "checkNpm"
+      }
+    );
+
+    this.minVersion = options.minVersion;
+  }
+
+  run(data: any): Promise<any> {
+    let self = this;
+
+    return self.getParentWorker().checkNpmVersion(this.minVersion)
+    .then((newData) => {
+      return self.runNextStage(newData);
+    })
+    .catch((error) => {
+      self.reportError(error);
+      throw error;
+  });
   }
 }

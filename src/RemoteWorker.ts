@@ -15,6 +15,8 @@ import { CopyPackageToServerStage,
          UnpackStage } from './WorkStage';
 import { IRemoteWorker, IWorkStage } from './types';
 
+import * as semver from 'semver';
+
 /**
  *  An object that allows the quick and easy execution of commands as a given
  *  user on a specific host using SSH.
@@ -106,17 +108,17 @@ export default class RemoteWorker implements IRemoteWorker {
   run() {
     let self = this;
 
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<any>((resolve, reject) => {
       if (self.stages.length > 0) {
         return self.stages[0].run(null)
           .then((data) => {
-            resolve();
+            resolve(data);
           })
           .catch((error) => {
             reject(error);
           });
       } else {
-        resolve();
+        resolve(null);
       }
     });
   }
@@ -155,6 +157,35 @@ export default class RemoteWorker implements IRemoteWorker {
         .catch((error) => {
           reject(error);
         });
+    });
+  }
+
+  checkNpmVersion(version: string): Promise<string|void> {
+    let self = this;
+
+    let ssh = new NodeSSH();
+    let sshConfig = self.getSSHConfiguration();
+    let result = '';
+
+    return ssh.connect(sshConfig)
+    .then(() => {
+      let command = `npm --version`
+      // Execute this in the context of a bash login shell.
+      let wrappedCommand = `bash -l -c "${command}"`;
+      return ssh.execCommand(wrappedCommand);
+    })
+    .then((result) => {
+      return new Promise<string|void>((resolve, reject) => {
+        if (result.stdout) {
+          if (!semver.gt(result.stdout, version)) {
+            reject(`npm version ${result.stdout} is less than specified minimum version of ${version}.`);
+          } else {
+            resolve(result.stdout);
+          }
+        } else {
+          reject(result.stderr);
+        }
+      });
     });
   }
 

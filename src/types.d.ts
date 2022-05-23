@@ -103,5 +103,7 @@ export interface IRemoteWorker {
    *
    * @return A promise that resolves when the operation is complete.
    */
-  cleanUpRemoteDirectories(numDirectoriesToKeep: number): Promise<any>
+  cleanUpRemoteDirectories(numDirectoriesToKeep: number): Promise<any>;
+
+  checkNpmVersion(version: string): Promise<string|void>;
 }

@@ -12,7 +12,7 @@ import { CLIAsync } from '../src';
 wrap.register(withFullSSHServer);
 
 describe ('shipout command line', () => {
-  wrap().withFullSSHServer().describe('when given a project that has a namespace', () => {
+  wrap().withFullSSHServer(4002).describe('when given a project that has a namespace', () => {
     beforeEach(() => {
       process.env.APP_ENVIRONMENT = 'staging';
     });
@@ -24,21 +24,14 @@ describe ('shipout command line', () => {
     });
 
     it ('should deploy the project', () => {
-      return new Promise<void>((resolve, reject) => {
-        CLIAsync([__dirname + '/fixtures/namespacedProject'],
-                 global.shipout.privateKey, true)
-          .then(() => {
-            // Package directory should be cleaned up
-            expect(fs.existsSync(__dirname + '/fixtures/namespacedProject/package')).toBe(false);
+      return CLIAsync([__dirname + '/fixtures/namespacedProject'],
+               global.shipout.privateKey, true)
+      .then(() => {
+        // Package directory should be cleaned up
+        expect(fs.existsSync(__dirname + '/fixtures/namespacedProject/package')).toBe(false);
 
-            // The directory should exist on the "remote" server
-            expect(fs.existsSync('/tmp/shipout/staging')).toBe(true);
-            resolve();
-          })
-          .catch((error) => {
-            // expect(error).toBeUndefined();
-            reject(error);
-          });
+        // The directory should exist on the "remote" server
+        expect(fs.existsSync('/tmp/shipout/staging')).toBe(true);
       });
     });
   });
