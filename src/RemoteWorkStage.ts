@@ -101,6 +101,7 @@ export class PackageRemoteWorkStage extends RemoteWorkStage {
         })
         .catch((error) => {
           self.reportError(error);
+          return Promise.reject(new Error(error));
         });
     }
   }
@@ -138,6 +139,7 @@ export class MakeDirectoryStage extends RemoteWorkStage {
       })
       .catch((error) => {
         self.reportError(error);
+        return Promise.reject(new Error(error));
       });
   }
 }
@@ -165,6 +167,7 @@ export class CreateCurrentLinkStage extends RemoteWorkStage {
       })
       .catch((error) => {
         self.reportError(error);
+        return Promise.reject(new Error(error));
       });
   }
 }
@@ -204,6 +207,7 @@ export class CopyPackageToServerStage extends RemoteWorkStage {
       })
       .catch((error) => {
         self.reportError(error);
+        return Promise.reject(new Error(error));
       });
   }
 }
@@ -238,6 +242,7 @@ export class UnpackStage extends RemoteWorkStage {
       })
       .catch((error) => {
         self.reportError(error);
+        return Promise.reject(new Error(error));
       });
   }
 }
@@ -273,6 +278,7 @@ export class RemoteCleanupStage extends RemoteWorkStage {
       })
       .catch((error) => {
         self.reportError(error);
+        return Promise.reject(new Error(error));
       });
   }
 }
@@ -306,6 +312,7 @@ export class LocalCleanupStage extends RemoteWorkStage {
       })
       .catch((error) => {
         self.reportError(error);
+        return Promise.reject(new Error(error));
       });
   }
 }
