@@ -1,6 +1,6 @@
 {
   "name": "@foamfactoryio/shipout",
-  "version": "0.1.8-rc4",
+  "version": "0.1.8-dev2",
   "description": "A lightweight tool for deploying node applications from within a source repository",
   "main": "dist/index.js",
   "files": [
@@ -16,8 +16,8 @@
     "changelog:generate": "gitmoji-changelog --output CHANGELOG.md",
     "clean": "rimraf dist && mkdir dist",
     "test": "jest",
-    "test:manual": "babel test/manual_server.js -d dist && node dist/manual_server.js",
     "test:coverage": "jest --coverage",
+    "test:runserver": "tsx test/run_test_server --verbose",
     "prepublishOnly": "yarn build"
   },
   "keywords": [
@@ -44,14 +44,16 @@
     "@types/jest": "^27.0.2",
     "@types/lodash": "^4.14.175",
     "@types/ssh2": "^0.5.48",
+    "@types/node-ssh": "^7.0.1",
     "babel-jest": "^27.0.6",
     "babel-plugin-root-import": "^6.5.0",
     "jest": "27.0.0",
     "jest-serial-runner": "^1.1.0",
     "jest-wrap": "^1.7.0",
     "lodash": "^4.17.21",
-    "test-sshdng": "^0.0.2",
+    "test-sshdng": "^0.0.5",
     "ts-jest": "^27.0.7",
+    "tsx": "^3.12.1",
     "typescript": "^4.4.4"
   },
   "dependencies": {
@@ -59,7 +61,7 @@
     "mkdirp": "^1.0.4",
     "moment": "^2.26.0",
     "node-scp": "^0.0.15",
-    "node-ssh": "^10.0.2",
+    "node-ssh": "^13.0.0",
     "pretty-logger": "^0.1.2",
     "rimraf": "^3.0.2",
     "ssh2": "^1.4.0",

@@ -59,7 +59,59 @@ export function connectAndRunCommand(connectionParams, command) {
   });
 }
 
-function setupSSHServer(options) {
+// This version of the function is used to test the server manually.
+export function runServer(options) {
+  return new Promise<void>((resolve, reject) => {
+    if (isVerboseMode()) {
+      console.log("Setting up SSH server running on 127.0.0.1:4000");
+    }
+
+    if (!global.shipout) {
+      global.shipout = {};
+    }
+
+    global.shipout.ssh_server = new TestSSHDng.TestSSHD(options);
+    // expect(global.shipout.ssh_server).toBeDefined();
+
+    let connectParams = global.shipout.ssh_server.connectParams();
+
+    global.shipout.privateKey = connectParams.privateKey;
+
+    global.shipout.ssh_server.on('ready', () => {
+      // expect(global.shipout.ssh_server).toBeDefined();
+      // expect(global.shipout.ssh_server.status).toBe('started');
+
+      if (isVerboseMode()) {
+        console.log("Resolving promise for setupSSHServer()");
+      }
+
+      resolve();
+    });
+
+    global.shipout.ssh_server.on('stdout', (message) => {
+      if (isVerboseMode()) {
+        console.log(`stdout: ${message}`);
+      }
+    });
+
+    global.shipout.ssh_server.on('stderr', (error) => {
+      if (isVerboseMode()) {
+        console.log(`stderr: ${error}`);
+      }
+    });
+
+    global.shipout.ssh_server.on('error', (error) => {
+      if (isVerboseMode()) {
+        console.error(`Encountered an error: ${error}`);
+      }
+      reject(error);
+    });
+
+    global.shipout.ssh_server.start();
+  });
+}
+
+export function setupSSHServer(options) {
   return new Promise<void>((resolve, reject) => {
     if (isVerboseMode()) {
       console.log("Setting up SSH server running on 127.0.0.1:4000");

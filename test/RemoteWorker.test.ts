@@ -82,7 +82,8 @@ describe ('RemoteWorker', () => {
     });
   });
 
-  wrap().withSFTPServer().describe('with a base directory of /tmp and an instance directory of blorf', () => {
+  wrap().withSFTPServer()
+  .describe('with a base directory of /tmp and an instance directory of blorf', () => {
     let baseDir = '/tmp';
     let instanceDir = 'blorf';
 
