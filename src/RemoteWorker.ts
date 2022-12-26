@@ -238,6 +238,7 @@ export default class RemoteWorker {
     return new Promise((resolve, reject) => {
       let response = '';
       let ssh = new NodeSSH();
+      console.log(sshConfig);
       ssh.connect(sshConfig)
         .then(() => {
           return ssh.execCommand(`mkdir -p "${remoteBaseDir}/${remoteInstanceDir}"`);
