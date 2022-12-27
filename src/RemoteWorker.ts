@@ -1,8 +1,8 @@
 import fs, { access, constants } from 'fs';
 import path from 'path';
 import process from 'process';
-import NodeSSH from 'node-ssh';
-import { Client } from 'node-scp';
+import {NodeSSH} from 'node-ssh';
+import { Client as SCPClient } from 'node-scp';
 import { RemoteWorkStage, PackageRemoteWorkStage } from 'RemoteWorkStage';
 import { Logger } from 'pretty-logger';
 import { ConfigStore } from './ConfigStore';
@@ -238,7 +238,7 @@ export default class RemoteWorker {
     return new Promise((resolve, reject) => {
       let response = '';
       let ssh = new NodeSSH();
-      this.logger.debug(`Executing mkdir -p "${remoteBaseDir}/${remoteInstanceDir}"`)
+      console.log(sshConfig);
       ssh.connect(sshConfig)
         .then(() => {
           return ssh.execCommand(`mkdir -p "${remoteBaseDir}/${remoteInstanceDir}"`);
@@ -298,7 +298,7 @@ export default class RemoteWorker {
           resolve();
         });
       } else {
-        return Client(this.getSSHConfiguration()).then(client => {
+        return SCPClient(this.getSSHConfiguration()).then(client => {
           this.logger.debug(`Connected to SSH server. Attempting file transfer from ${localPath} to ${sshConfig.host}:${remotePath}`);
           this.logger.debug(`Local path exists? `, fs.existsSync(localPath));
 
@@ -384,6 +384,7 @@ export default class RemoteWorker {
       "port": this.port,
       "privateKey": this.privateKey,
       "agent": authSock ? authSock : false
+      /*"debug": console.log*/
     };
   }
 
@@ -392,6 +393,7 @@ export default class RemoteWorker {
   }
 
   _resolvePrivateKeyIfNotExist() {
+    this.logger.debug("Resolving private key because it doesn't seem to exist...");
     if (!this.privateKey) {
       const sshKeyPath = path.join(process.env.HOME, '.ssh', 'id_rsa');
       let data = fs.readFileSync(sshKeyPath, 'utf8');

@@ -6,7 +6,7 @@ import { isVerboseMode,
 import wrap from 'jest-wrap';
 
 wrap.register(withSSHMimicServer);
-const PORT : number = 4001;
+const PORT : number = 4022;
 
 describe ('Server Helper', () => {
   wrap().withSSHMimicServer(PORT).describe('after having set up the SSH server', () => {

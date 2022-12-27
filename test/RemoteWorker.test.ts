@@ -82,7 +82,8 @@ describe ('RemoteWorker', () => {
     });
   });
 
-  wrap().withSFTPServer().describe('with a base directory of /tmp and an instance directory of blorf', () => {
+  wrap().withSFTPServer()
+  .describe('with a base directory of /tmp and an instance directory of blorf', () => {
     let baseDir = '/tmp';
     let instanceDir = 'blorf';
 
@@ -236,13 +237,14 @@ describe ('RemoteWorker', () => {
         return new Promise<void>((resolve, reject) => {
           let remoteWorker
             = new RemoteWorker(process.env.USER, '127.0.0.1',
-                               '4000', baseDir, instanceDir, null, logger);
+                               '4000', baseDir, instanceDir, global.shipout.privateKey, logger);
 
           remoteWorker.createBaseDirectoryOnServer()
             .then((response) => {
               reject();
             })
             .catch((error) => {
+              console.log(error);
               expect(error.code).toMatch('ECONNREFUSED');
               resolve();
             });
@@ -255,7 +257,7 @@ describe ('RemoteWorker', () => {
         return new Promise<void>((resolve, reject) => {
           let remoteWorker = new RemoteWorker(process.env.USER, '127.0.0.1',
                                               '4000', baseDir, instanceDir,
-                                              null, logger);
+                                              global.shipout.privateKey, logger);
           remoteWorker.createCurrentLink()
             .then((result) => {
               reject();
