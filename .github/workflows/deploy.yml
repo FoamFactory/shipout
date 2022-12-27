@@ -1,0 +1,58 @@
+name: Build and Publish Release to Github Packages
+
+on:
+  release:
+    types: [released, edited]
+
+
+jobs:
+  # Set the job key. The key is displayed as the job name
+  # when a job name is not provided
+  build-and-publish:
+    name: Build and Publish Release
+    # Set the type of machine to run on
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.11.0]
+
+    steps:
+      # jq is needed for the package-bump-version script
+      - name: Install jq
+        run: sudo apt-get install jq
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3.5.1
+        with:
+          node-version: ${{ matrix.node-version }}
+          registry-url: "https://npm.pkg.github.com"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.PACKAGES_ACCESS_TOKEN }}
+      - name: Checkout Codebase
+        uses: actions/checkout@v2.5.0
+      - name: Install Dependencies
+        run: yarn install --production=false
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.PACKAGES_ACCESS_TOKEN }}
+      - name: Create npmrc file
+        uses: ferluisxd/create-npmrc@3
+        with:
+          org_name: foamfactory
+          auth_token: ${{ secrets.PACKAGES_ACCESS_TOKEN }}
+        env:
+          AUTH_TOKEN: ${{ secrets.PACKAGES_ACCESS_TOKEN }}
+      - name: Replace version number in package.json
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.PACKAGES_ACCESS_TOKEN }}
+        run: ./contrib/package-bump-version.sh
+      - name: Run Test Framework
+        run: yarn test
+      - name: Run Build Script (Production)
+        run: yarn build:prod
+      - name: Setup Node to Publish to GPR
+        uses: actions/setup-node@v3.5.1
+        with:
+          registry-url: 'https://npm.pkg.github.com'
+      - name: Publish release to GPR
+        run: yarn publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.PACKAGES_ACCESS_TOKEN }}
