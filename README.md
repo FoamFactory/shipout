@@ -2,19 +2,7 @@
 A lightweight tool for deploying node applications from within a source repository
 
 ## Usage
-1. You will need to add the following to an `.npmrc` file in order to get access
-to packages hosted by `@foamfactory` on github packages:
-```
-registry=https://registry.npmjs.org
-@foamfactoryio:registry=https://npm.pkg.github.com
-```
-Alternatively, if using `yarn`, you need to add the following `.yarnrc`:
-```
-"@foamfactoryio:registry" "https://npm.pkg.github.com/"
-registry "https://registry.npmjs.org/"
-```
-
-2. Inside of your project, run:
+1. Inside of your project, run:
 ```
 npm install --save-dev @foamfactoryio/shipout
 ```
@@ -23,9 +11,9 @@ Alternatively, if using `yarn`, run:
 yarn add -D @foamfactoryio/shipout
 ```
 
-3. Add your configuration to your `package.json` or environment variables (see
+2. Add your configuration to your `package.json` or environment variables (see
   [Configuration](#configuration)), below.
-4. Add a `shipout` script to your `package.json` (or, alternatively, use
+3. Add a `shipout` script to your `package.json` (or, alternatively, use
   `publish` if you so desire):
   ```
   "scripts": {
