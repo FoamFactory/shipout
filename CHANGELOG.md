@@ -1,5 +1,53 @@
 # Changelog
 
+<a name="0.1.9"></a>
+## 0.1.9 (2023-04-28)
+
+### Fixed
+
+- 🐛 Fix issue where shipout would hang on successful completion. [[1284675](https://github.com/foamfactory/shipout/commit/12846751248069af1b6968dc6966df54a9d8abec)]
+- 🐛 Fix issue where node-scp was using an incorrect configuration. [[ceb81fb](https://github.com/foamfactory/shipout/commit/ceb81fb99f9222d6c49e7a3aa44fcc10fb76d259)]
+
+### Miscellaneous
+
+- 📖 Remove reference to github packages from readme. [[0e55cfb](https://github.com/foamfactory/shipout/commit/0e55cfb9431dcd46ba0ea794d24f531d130d5b45)]
+
+
+<a name="0.1.8"></a>
+## 0.1.8 (2022-12-27)
+
+### Added
+
+- ✅ Make tests work once more. [[47f12b6](https://github.com/foamfactory/shipout/commit/47f12b618ec3fe39b8d49b12fff0dd70e0b37a1e)]
+- 🎉 Initial conversion to typescript for all source files and tests. [[1ab8c72](https://github.com/foamfactory/shipout/commit/1ab8c72dac21e20ceebd5b90bf1f6d20b7b716c1)]
+
+### Changed
+
+- ♻️ Move contrib with space directory to contrib, with no space. [[661bea5](https://github.com/foamfactory/shipout/commit/661bea53248312fc2027c063bc95b6a9390a9c93)]
+- ⬆️ Bump moment from 2.29.2 to 2.29.4 [[2adf26d](https://github.com/foamfactory/shipout/commit/2adf26dc5f481e3b105643b301448746c550b242)]
+- ⬆️ Bump minimatch from 3.0.4 to 3.1.2 [[6ab2ae2](https://github.com/foamfactory/shipout/commit/6ab2ae21aacd78c0f7d261379129ed3670a30a5c)]
+- ⬆️ Bump shell-quote from 1.7.2 to 1.7.3 [[e8ca2cc](https://github.com/foamfactory/shipout/commit/e8ca2cca79e874c10f302e80278414abc623f02a)]
+- ⬆️ Bump ansi-regex from 4.1.0 to 4.1.1 [[81bf687](https://github.com/foamfactory/shipout/commit/81bf687e0291e239ece9af62f3547b685b731aff)]
+- ⬆️ Bump moment from 2.29.1 to 2.29.2 [[afd6436](https://github.com/foamfactory/shipout/commit/afd6436e9923cf484cfe601c6531da7008eb41ec)]
+- ⬆️ Bump minimist from 1.2.5 to 1.2.6 [[2cb5321](https://github.com/foamfactory/shipout/commit/2cb532156cd887ad5c75b64c33c2a7e9cac2254e)]
+- ♻️ Migrate tar from devDependencies to dependencies. [[679ea4e](https://github.com/foamfactory/shipout/commit/679ea4e3a14fcc85a22a1a1f14243f6c45a3bf2f)]
+- ⬆️ Bump ssh2 from 0.8.9 to 1.4.0 [[ccd4fe7](https://github.com/foamfactory/shipout/commit/ccd4fe769d1d343c14ba628e2126f024e409aa00)]
+- ⬆️ Bump version number for next release. [[fc60d6b](https://github.com/foamfactory/shipout/commit/fc60d6bcfa3ceb107c9b3bb08ab3be842e62ff79)]
+
+### Fixed
+
+- 🐛 Make shipout return a non-zero error code on failures to auth. [[aab748e](https://github.com/foamfactory/shipout/commit/aab748e7c110ee02995f0f9b3fac7c39278a172e)]
+- 🐛 Fix an issue where the script in bin/ had issues with paths. [[c8cdac3](https://github.com/foamfactory/shipout/commit/c8cdac393fd2e1e072ac7689fce428fbd602fb2f)]
+
+### Miscellaneous
+
+-  :robot: Make CI deploy to Github Packages. [[3345c18](https://github.com/foamfactory/shipout/commit/3345c1829449aa8389536c13dea6b3163740ca61)]
+-  :robot: Re-enable testing on CI. [[c3fec18](https://github.com/foamfactory/shipout/commit/c3fec1816481f3805712658231cdc6704979e347)]
+-  :robot: Add running of test suite to Github Actions checks. [[d63c43e](https://github.com/foamfactory/shipout/commit/d63c43e73b02dd493a774f5eef582f6a7518a62b)]
+-  :robot: Set up continuous integration using GH actions. [[520c013](https://github.com/foamfactory/shipout/commit/520c013d2068bfe7c2b663998027d71719374982)]
+- 📖 Change README to reference @foamfactoryio instead of @foamfactory. [[da58aba](https://github.com/foamfactory/shipout/commit/da58aba741377eb1d56f4600f44ba8ae4131fde8)]
+- 📖 Update CHANGELOG for 0.1.7. [[07f0955](https://github.com/foamfactory/shipout/commit/07f09554642a419993d28f3ddb792a66e2c6f25d)]
+
 <a name="0.1.7"></a>
 ## 0.1.7 (2021-09-15)
 
