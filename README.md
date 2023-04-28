@@ -74,10 +74,13 @@ The number of old releases to keep on the remote host. If set to `-1`, all
 cleanup of old releases will be disabled and all releases will be kept
 indefinitely. Defaults to `5` if not specified.
 
+### `verbose`
+Whether or not to output debugging information. Defaults to `null`, which is
+equivalent to `false`. If you want debugging information specified, use `true`.
+
 ## Running Tests
 ### Prerequisites
 You will need the following installed prior to running tests:
-  - [Docker](https://docs.docker.com/engine/install/ubuntu/)
   - openssh-server
 
 To install the prerequisites with `apt`, use the following command:

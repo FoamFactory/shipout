@@ -155,7 +155,7 @@ export class CreateCurrentLinkStage extends RemoteWorkStage {
   }
 
   run (data: any) : Promise<any> {
-    this.getLogger().debug('Creating current link');
+    this.getLogger().info('Creating current link');
     let self = this;
 
     let returnData = data;
@@ -197,7 +197,7 @@ export class CopyPackageToServerStage extends RemoteWorkStage {
     let packedFilePath = data.path;
     let deployServer = self.getConfigStore().getHost();
 
-    self.getLogger().debug(`Copying ${packedFilePath}/${packedFileName} to ${deployServer}`);
+    self.getLogger().info(`Copying ${packedFilePath}/${packedFileName} to ${deployServer}`);
 
     return self.getParentWorker()
     .copyPackageToServer(packedFilePath, packedFileName)
@@ -229,9 +229,7 @@ export class UnpackStage extends RemoteWorkStage {
       throw 'Data does not contain a fileName property. Did a previous stage fail?';
     }
 
-    // if (!self.getConfigStore().isTestMode()) {
-      self.getLogger().debug(`Unpacking ${packedFileName} on remote host...`);
-    // }
+    self.getLogger().info(`Unpacking ${packedFileName} on remote host...`);
 
     return self.getParentWorker().unpackRemotely(packedFileName)
       .then((newData) => {
@@ -259,7 +257,7 @@ export class RemoteCleanupStage extends RemoteWorkStage {
 
   run (data: any) : Promise<any> {
     let self = this;
-    self.getLogger().debug('Cleaning up remote directories');
+    self.getLogger().info('Cleaning up remote directories');
 
     let returnData = data;
 
@@ -303,7 +301,7 @@ export class LocalCleanupStage extends RemoteWorkStage {
 
     let filePacker = new FilePacker(self.getConfigStore());
 
-    self.getLogger().debug(`Cleaning up ${filePacker.getPackedFilePath()}...`);
+    self.getLogger().info(`Cleaning up ${filePacker.getPackedFilePath()}...`);
 
     return filePacker.cleanUp()
       .then((newData) => {
