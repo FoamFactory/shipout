@@ -67,7 +67,7 @@ export class ConfigStore {
   }
 
   getIsVerboseModeForEnvironment(environment) {
-    return this.getConfigValueForEnvironment(environment, 'verbose');
+    return this.getConfigValueForEnvironment(environment, 'verbose', false);
   }
 
   getHost() {

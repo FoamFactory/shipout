@@ -1,8 +1,7 @@
 import fs, { access, constants } from 'fs';
 import path from 'path';
 import process from 'process';
-import {NodeSSH} from 'node-ssh';
-import { Client as SCPClient } from 'node-scp';
+import {Config, NodeSSH} from 'node-ssh';
 import { RemoteWorkStage, PackageRemoteWorkStage } from 'RemoteWorkStage';
 import { Logger } from 'pretty-logger';
 import { ConfigStore } from './ConfigStore';
@@ -231,14 +230,10 @@ export default class RemoteWorker {
     let sshConfig = self.getSSHConfiguration();
     let remoteBaseDir = self.remoteBaseDir;
     let remoteInstanceDir = self.remoteInstanceDir;
-    let deployUser = sshConfig.username;
-    let deployServer = sshConfig.host;
-    let port = sshConfig.port;
 
     return new Promise((resolve, reject) => {
       let response = '';
       let ssh = new NodeSSH();
-      console.log(sshConfig);
       ssh.connect(sshConfig)
         .then(() => {
           return ssh.execCommand(`mkdir -p "${remoteBaseDir}/${remoteInstanceDir}"`);
@@ -298,23 +293,33 @@ export default class RemoteWorker {
           resolve();
         });
       } else {
-        return SCPClient(this.getSSHConfiguration()).then(client => {
-          this.logger.debug(`Connected to SSH server. Attempting file transfer from ${localPath} to ${sshConfig.host}:${remotePath}`);
-          this.logger.debug(`Local path exists? `, fs.existsSync(localPath));
-
-          return client.uploadFile(localPath, remotePath)
-            .then((response) => {
-              client.close();
+        let ssh = new NodeSSH();
+        let logger = this.logger;
+        ssh.connect(sshConfig)
+          .then(() => {
+            return ssh.withSFTP((sftp) => {
+              this.logger.info(`Connected to SFTP server. Attempting file transfer from ${localPath} to ${sshConfig.host}:${remotePath}`);
+              return new Promise<void>((sftpResolve, sftpReject) => {
+                sftp.fastPut(localPath, remotePath, (err) => {
+                  if (err) {
+                    logger.error("SFTP failed to put file", err);
+                    sftpReject(err);
+                  } else {
+                    logger.debug("Finished transferring file");
+                    sftpResolve();
+                  }
+                });
+              });
+            })
+            .then(() => {
+              this.logger.debug("Finished with SFTP server");
               resolve();
             })
-            .catch((error) => {
-              this.logger.error("Unable to copy file to ssh server due to: ", error);
-              reject(error);
-            })
-        }).catch((e) => {
-          this.logger.error(`Unable to connect to ssh host "${sshConfig.host}: `, e);
-          reject(e);
-        });
+            .catch((e) => {
+              this.logger.error("Issue occurred while connecting to sftp host", e);
+              reject(e);
+            });
+          });
       }
     });
   }
@@ -364,7 +369,7 @@ export default class RemoteWorker {
    *          using ssh-agent, the value for the SSH_AUTH_SOCK environment
    *          variable.
    */
-  getSSHConfiguration() {
+  getSSHConfiguration() : Config {
     let authSock;
     if (!this.privateKey) {
       if (process.env.SSH_AUTH_SOCK) {
@@ -383,8 +388,19 @@ export default class RemoteWorker {
       "username": this.user,
       "port": this.port,
       "privateKey": this.privateKey,
-      "agent": authSock ? authSock : false
-      /*"debug": console.log*/
+      "agent": authSock ? authSock : false,
+      algorithms: {
+        serverHostKey: [
+          'ssh-ed25519',
+          'ecdsa-sha2-nistp256',
+          'ecdsa-sha2-nistp384',
+          'ecdsa-sha2-nistp521',
+          'rsa-sha2-512',
+          'rsa-sha2-256',
+          'ssh-rsa',
+          'ssh-dss'
+        ],
+      }
     };
   }
 

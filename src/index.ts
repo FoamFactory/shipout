@@ -27,6 +27,7 @@ export function CLI(args: Array<string>) {
   CLIAsync(args, null, false)
     .then((lgr: Logger) => {
       lgr.info("Shipout Complete");
+      process.exit(0);
     })
     .catch((errorObj) => {
       console.trace(errorObj);
